@@ -1645,3 +1645,351 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpdateDocumentResponseValidationError{}
+
+// Validate checks the field values on CreateInviteLinkRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateInviteLinkRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateInviteLinkRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateInviteLinkRequestMultiError, or nil if none found.
+func (m *CreateInviteLinkRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateInviteLinkRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetDocumentId() <= 0 {
+		err := CreateInviteLinkRequestValidationError{
+			field:  "DocumentId",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := _CreateInviteLinkRequest_Role_InLookup[m.GetRole()]; !ok {
+		err := CreateInviteLinkRequestValidationError{
+			field:  "Role",
+			reason: "value must be in list [EDITOR VIEWER]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for ExpiresAt
+
+	if len(errors) > 0 {
+		return CreateInviteLinkRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateInviteLinkRequestMultiError is an error wrapping multiple validation
+// errors returned by CreateInviteLinkRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CreateInviteLinkRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateInviteLinkRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateInviteLinkRequestMultiError) AllErrors() []error { return m }
+
+// CreateInviteLinkRequestValidationError is the validation error returned by
+// CreateInviteLinkRequest.Validate if the designated constraints aren't met.
+type CreateInviteLinkRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateInviteLinkRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateInviteLinkRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateInviteLinkRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateInviteLinkRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateInviteLinkRequestValidationError) ErrorName() string {
+	return "CreateInviteLinkRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateInviteLinkRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateInviteLinkRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateInviteLinkRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateInviteLinkRequestValidationError{}
+
+var _CreateInviteLinkRequest_Role_InLookup = map[Role]struct{}{
+	2: {},
+	3: {},
+}
+
+// Validate checks the field values on CreateInviteLinkResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateInviteLinkResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateInviteLinkResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateInviteLinkResponseMultiError, or nil if none found.
+func (m *CreateInviteLinkResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateInviteLinkResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for InviteToken
+
+	if len(errors) > 0 {
+		return CreateInviteLinkResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateInviteLinkResponseMultiError is an error wrapping multiple validation
+// errors returned by CreateInviteLinkResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CreateInviteLinkResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateInviteLinkResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateInviteLinkResponseMultiError) AllErrors() []error { return m }
+
+// CreateInviteLinkResponseValidationError is the validation error returned by
+// CreateInviteLinkResponse.Validate if the designated constraints aren't met.
+type CreateInviteLinkResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateInviteLinkResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateInviteLinkResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateInviteLinkResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateInviteLinkResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateInviteLinkResponseValidationError) ErrorName() string {
+	return "CreateInviteLinkResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateInviteLinkResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateInviteLinkResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateInviteLinkResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateInviteLinkResponseValidationError{}
+
+// Validate checks the field values on AcceptInviteRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AcceptInviteRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AcceptInviteRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AcceptInviteRequestMultiError, or nil if none found.
+func (m *AcceptInviteRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AcceptInviteRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetInviteToken()) < 1 {
+		err := AcceptInviteRequestValidationError{
+			field:  "InviteToken",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return AcceptInviteRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AcceptInviteRequestMultiError is an error wrapping multiple validation
+// errors returned by AcceptInviteRequest.ValidateAll() if the designated
+// constraints aren't met.
+type AcceptInviteRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AcceptInviteRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AcceptInviteRequestMultiError) AllErrors() []error { return m }
+
+// AcceptInviteRequestValidationError is the validation error returned by
+// AcceptInviteRequest.Validate if the designated constraints aren't met.
+type AcceptInviteRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AcceptInviteRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AcceptInviteRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AcceptInviteRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AcceptInviteRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AcceptInviteRequestValidationError) ErrorName() string {
+	return "AcceptInviteRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AcceptInviteRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAcceptInviteRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AcceptInviteRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AcceptInviteRequestValidationError{}

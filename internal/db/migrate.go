@@ -10,8 +10,8 @@ func Migrate(log *zap.Logger) {
 		&models.User{},
 		&models.Document{},
 		&models.DocumentAccess{},
+		&models.InviteLink{},
 	); err != nil {
-
 		log.Fatal("Ошибка при миграции таблиц: ", zap.Error(err))
 	}
 

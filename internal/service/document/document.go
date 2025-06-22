@@ -2,10 +2,12 @@ package document
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/Anabol1ks/LiveEdit/internal/auth"
 	"github.com/Anabol1ks/LiveEdit/internal/models"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -180,6 +182,11 @@ func (s *Service) DeleteDocument(ctx context.Context, req *liveeditv1.DeleteDocu
 		return nil, status.Error(codes.Internal, "failed to get document")
 	}
 
+	if err := s.DB.Where("document_id = ?", document.ID).Delete(&models.DocumentAccess{}).Error; err != nil {
+		s.Log.Error("[%s] failed to delete document accesses", zap.String("op", op), zap.Error(err))
+		return nil, status.Errorf(codes.Internal, "failed to delete document accesses: %v", err)
+	}
+
 	if err := s.DB.Delete(&document).Error; err != nil {
 		s.Log.Error("[%s] failed to delete document", zap.String("op", op), zap.Error(err))
 		return nil, status.Errorf(codes.Internal, "failed to delete document: %v", err)
@@ -240,4 +247,115 @@ func (s *Service) UpdateDocument(ctx context.Context, req *liveeditv1.UpdateDocu
 	return &liveeditv1.UpdateDocumentResponse{
 		UpdatedAt: updatedAt.Format("2006-01-02T15:04:05Z"),
 	}, nil
+}
+
+func (s *Service) CreateInviteLink(ctx context.Context, req *liveeditv1.CreateInviteLinkRequest) (*liveeditv1.CreateInviteLinkResponse, error) {
+	op := "CreateInviteLink"
+	s.Log.Info("start", zap.String("op", op))
+
+	userID, ok := ctx.Value("user_id").(uint64)
+	if !ok {
+		s.Log.Warn("[%s] user_id not found in context", zap.String("op", op))
+		return nil, status.Error(codes.Unauthenticated, "user_id not found in context")
+	}
+
+	var document models.Document
+	err := s.DB.
+		Where("id = ? AND owner_id = ?", req.DocumentId, userID).
+		First(&document).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, status.Error(codes.NotFound, "document not found or access denied")
+		}
+		s.Log.Error("[%s] db error", zap.String("op", op), zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed to get document")
+	}
+
+	token := uuid.New().String()
+
+	var expiresAt *time.Time
+	if req.ExpiresAt != "" {
+		dur, err := time.ParseDuration(req.ExpiresAt)
+		if err != nil {
+			s.Log.Warn("[%s] invalid expires_at duration", zap.String("op", op), zap.String("expires_at", req.ExpiresAt))
+			return nil, status.Error(codes.InvalidArgument, "invalid expires_at format, must be duration like '24h'")
+		}
+		t := time.Now().Add(dur)
+		expiresAt = &t
+	}
+
+	inviteLink := models.InviteLink{
+		DocumentID: uint(req.DocumentId),
+		Role:       req.Role.String(),
+		Token:      token,
+		Used:       false,
+		ExpiresAt:  expiresAt,
+		CreatedAt:  time.Now(),
+	}
+
+	if err := s.DB.Create(&inviteLink).Error; err != nil {
+		s.Log.Error("[%s] db error", zap.String("op", op), zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed to create invite link")
+	}
+
+	return &liveeditv1.CreateInviteLinkResponse{
+		InviteToken: token,
+	}, nil
+}
+
+func (s *Service) AcceptInvite(ctx context.Context, req *liveeditv1.AcceptInviteRequest) (*emptypb.Empty, error) {
+	op := "AcceptInvite"
+	s.Log.Info("start", zap.String("op", op))
+
+	userID, ok := ctx.Value("user_id").(uint64)
+	if !ok {
+		s.Log.Warn("[%s] user_id not found in context", zap.String("op", op))
+		return nil, status.Error(codes.Unauthenticated, "user_id not found in context")
+	}
+
+	var invite models.InviteLink
+	if err := s.DB.Where("token = ?", req.InviteToken).
+		First(&invite).
+		Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, status.Error(codes.NotFound, "invite not found")
+		}
+		return nil, status.Error(codes.Internal, "db error")
+	}
+
+	if invite.ExpiresAt != nil && time.Now().After(*invite.ExpiresAt) {
+		return nil, status.Error(codes.FailedPrecondition, "invite link expired")
+	}
+
+	if invite.Used {
+		return nil, status.Error(codes.AlreadyExists, "invite link already used")
+	}
+
+	var existingAccess models.DocumentAccess
+	if err := s.DB.
+		Where("document_id = ? AND user_id = ?", invite.DocumentID, userID).
+		First(&existingAccess).Error; err == nil {
+		return nil, status.Error(codes.AlreadyExists, "access already granted")
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, status.Error(codes.Internal, "db error")
+	}
+
+	newAccess := models.DocumentAccess{
+		DocumentID: invite.DocumentID,
+		UserID:     uint(userID),
+		Role:       invite.Role,
+		CreatedAt:  time.Now(),
+	}
+
+	if err := s.DB.Create(&newAccess).Error; err != nil {
+		s.Log.Error("[%s] failed to create access", zap.String("op", op), zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed to grant access")
+	}
+
+	invite.Used = true
+	if err := s.DB.Save(&invite).Error; err != nil {
+		s.Log.Warn("[%s] failed to mark invite used", zap.String("op", op), zap.Error(err))
+	}
+
+	return &emptypb.Empty{}, nil
 }

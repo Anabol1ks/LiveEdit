@@ -776,6 +776,154 @@ func (x *UpdateDocumentResponse) GetUpdatedAt() string {
 	return ""
 }
 
+type CreateInviteLinkRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DocumentId    uint64                 `protobuf:"varint,1,opt,name=document_id,json=documentId,proto3" json:"document_id,omitempty"`
+	Role          Role                   `protobuf:"varint,2,opt,name=role,proto3,enum=liveedit.v1.Role" json:"role,omitempty"`     // Только EDITOR или VIEWER
+	ExpiresAt     string                 `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"` // Опционально, RFC3339
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateInviteLinkRequest) Reset() {
+	*x = CreateInviteLinkRequest{}
+	mi := &file_proto_document_document_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateInviteLinkRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateInviteLinkRequest) ProtoMessage() {}
+
+func (x *CreateInviteLinkRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_document_document_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateInviteLinkRequest.ProtoReflect.Descriptor instead.
+func (*CreateInviteLinkRequest) Descriptor() ([]byte, []int) {
+	return file_proto_document_document_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *CreateInviteLinkRequest) GetDocumentId() uint64 {
+	if x != nil {
+		return x.DocumentId
+	}
+	return 0
+}
+
+func (x *CreateInviteLinkRequest) GetRole() Role {
+	if x != nil {
+		return x.Role
+	}
+	return Role_ROLE_UNSPECIFIED
+}
+
+func (x *CreateInviteLinkRequest) GetExpiresAt() string {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return ""
+}
+
+type CreateInviteLinkResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	InviteToken   string                 `protobuf:"bytes,1,opt,name=invite_token,json=inviteToken,proto3" json:"invite_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateInviteLinkResponse) Reset() {
+	*x = CreateInviteLinkResponse{}
+	mi := &file_proto_document_document_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateInviteLinkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateInviteLinkResponse) ProtoMessage() {}
+
+func (x *CreateInviteLinkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_document_document_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateInviteLinkResponse.ProtoReflect.Descriptor instead.
+func (*CreateInviteLinkResponse) Descriptor() ([]byte, []int) {
+	return file_proto_document_document_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *CreateInviteLinkResponse) GetInviteToken() string {
+	if x != nil {
+		return x.InviteToken
+	}
+	return ""
+}
+
+type AcceptInviteRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	InviteToken   string                 `protobuf:"bytes,1,opt,name=invite_token,json=inviteToken,proto3" json:"invite_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AcceptInviteRequest) Reset() {
+	*x = AcceptInviteRequest{}
+	mi := &file_proto_document_document_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AcceptInviteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AcceptInviteRequest) ProtoMessage() {}
+
+func (x *AcceptInviteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_document_document_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AcceptInviteRequest.ProtoReflect.Descriptor instead.
+func (*AcceptInviteRequest) Descriptor() ([]byte, []int) {
+	return file_proto_document_document_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *AcceptInviteRequest) GetInviteToken() string {
+	if x != nil {
+		return x.InviteToken
+	}
+	return ""
+}
+
 var File_proto_document_document_proto protoreflect.FileDescriptor
 
 const file_proto_document_document_proto_rawDesc = "" +
@@ -835,20 +983,33 @@ const file_proto_document_document_proto_rawDesc = "" +
 	"\acontent\x18\x03 \x01(\tR\acontent\"7\n" +
 	"\x16UpdateDocumentResponse\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x01 \x01(\tR\tupdatedAt*?\n" +
+	"updated_at\x18\x01 \x01(\tR\tupdatedAt\"\x95\x01\n" +
+	"\x17CreateInviteLinkRequest\x12(\n" +
+	"\vdocument_id\x18\x01 \x01(\x04B\a\xfaB\x042\x02 \x00R\n" +
+	"documentId\x121\n" +
+	"\x04role\x18\x02 \x01(\x0e2\x11.liveedit.v1.RoleB\n" +
+	"\xfaB\a\x82\x01\x04\x18\x02\x18\x03R\x04role\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\tR\texpiresAt\"=\n" +
+	"\x18CreateInviteLinkResponse\x12!\n" +
+	"\finvite_token\x18\x01 \x01(\tR\vinviteToken\"A\n" +
+	"\x13AcceptInviteRequest\x12*\n" +
+	"\finvite_token\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\vinviteToken*?\n" +
 	"\x04Role\x12\x14\n" +
 	"\x10ROLE_UNSPECIFIED\x10\x00\x12\t\n" +
 	"\x05OWNER\x10\x01\x12\n" +
 	"\n" +
 	"\x06EDITOR\x10\x02\x12\n" +
 	"\n" +
-	"\x06VIEWER\x10\x032\x94\x05\n" +
+	"\x06VIEWER\x10\x032\xbf\x06\n" +
 	"\x0fDocumentService\x12Y\n" +
 	"\x0eCreateDocument\x12\".liveedit.v1.CreateDocumentRequest\x1a#.liveedit.v1.CreateDocumentResponse\x12S\n" +
 	"\fGetDocuments\x12 .liveedit.v1.GetDocumentsRequest\x1a!.liveedit.v1.GetDocumentsResponse\x12P\n" +
 	"\vGetDocument\x12\x1f.liveedit.v1.GetDocumentRequest\x1a .liveedit.v1.GetDocumentResponse\x12L\n" +
 	"\x0eDeleteDocument\x12\".liveedit.v1.DeleteDocumentRequest\x1a\x16.google.protobuf.Empty\x12Y\n" +
-	"\x0eUpdateDocument\x12\".liveedit.v1.UpdateDocumentRequest\x1a#.liveedit.v1.UpdateDocumentResponse\x12D\n" +
+	"\x0eUpdateDocument\x12\".liveedit.v1.UpdateDocumentRequest\x1a#.liveedit.v1.UpdateDocumentResponse\x12_\n" +
+	"\x10CreateInviteLink\x12$.liveedit.v1.CreateInviteLinkRequest\x1a%.liveedit.v1.CreateInviteLinkResponse\x12H\n" +
+	"\fAcceptInvite\x12 .liveedit.v1.AcceptInviteRequest\x1a\x16.google.protobuf.Empty\x12D\n" +
 	"\n" +
 	"InviteUser\x12\x1e.liveedit.v1.InviteUserRequest\x1a\x16.google.protobuf.Empty\x12F\n" +
 	"\vSetUserRole\x12\x1f.liveedit.v1.SetUserRoleRequest\x1a\x16.google.protobuf.Empty\x12H\n" +
@@ -867,23 +1028,26 @@ func file_proto_document_document_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_document_document_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_document_document_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_proto_document_document_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_proto_document_document_proto_goTypes = []any{
-	(Role)(0),                      // 0: liveedit.v1.Role
-	(*CreateDocumentRequest)(nil),  // 1: liveedit.v1.CreateDocumentRequest
-	(*CreateDocumentResponse)(nil), // 2: liveedit.v1.CreateDocumentResponse
-	(*GetDocumentsRequest)(nil),    // 3: liveedit.v1.GetDocumentsRequest
-	(*DocumentItem)(nil),           // 4: liveedit.v1.DocumentItem
-	(*GetDocumentsResponse)(nil),   // 5: liveedit.v1.GetDocumentsResponse
-	(*GetDocumentRequest)(nil),     // 6: liveedit.v1.GetDocumentRequest
-	(*GetDocumentResponse)(nil),    // 7: liveedit.v1.GetDocumentResponse
-	(*DeleteDocumentRequest)(nil),  // 8: liveedit.v1.DeleteDocumentRequest
-	(*InviteUserRequest)(nil),      // 9: liveedit.v1.InviteUserRequest
-	(*SetUserRoleRequest)(nil),     // 10: liveedit.v1.SetUserRoleRequest
-	(*RevokeAccessRequest)(nil),    // 11: liveedit.v1.RevokeAccessRequest
-	(*UpdateDocumentRequest)(nil),  // 12: liveedit.v1.UpdateDocumentRequest
-	(*UpdateDocumentResponse)(nil), // 13: liveedit.v1.UpdateDocumentResponse
-	(*emptypb.Empty)(nil),          // 14: google.protobuf.Empty
+	(Role)(0),                        // 0: liveedit.v1.Role
+	(*CreateDocumentRequest)(nil),    // 1: liveedit.v1.CreateDocumentRequest
+	(*CreateDocumentResponse)(nil),   // 2: liveedit.v1.CreateDocumentResponse
+	(*GetDocumentsRequest)(nil),      // 3: liveedit.v1.GetDocumentsRequest
+	(*DocumentItem)(nil),             // 4: liveedit.v1.DocumentItem
+	(*GetDocumentsResponse)(nil),     // 5: liveedit.v1.GetDocumentsResponse
+	(*GetDocumentRequest)(nil),       // 6: liveedit.v1.GetDocumentRequest
+	(*GetDocumentResponse)(nil),      // 7: liveedit.v1.GetDocumentResponse
+	(*DeleteDocumentRequest)(nil),    // 8: liveedit.v1.DeleteDocumentRequest
+	(*InviteUserRequest)(nil),        // 9: liveedit.v1.InviteUserRequest
+	(*SetUserRoleRequest)(nil),       // 10: liveedit.v1.SetUserRoleRequest
+	(*RevokeAccessRequest)(nil),      // 11: liveedit.v1.RevokeAccessRequest
+	(*UpdateDocumentRequest)(nil),    // 12: liveedit.v1.UpdateDocumentRequest
+	(*UpdateDocumentResponse)(nil),   // 13: liveedit.v1.UpdateDocumentResponse
+	(*CreateInviteLinkRequest)(nil),  // 14: liveedit.v1.CreateInviteLinkRequest
+	(*CreateInviteLinkResponse)(nil), // 15: liveedit.v1.CreateInviteLinkResponse
+	(*AcceptInviteRequest)(nil),      // 16: liveedit.v1.AcceptInviteRequest
+	(*emptypb.Empty)(nil),            // 17: google.protobuf.Empty
 }
 var file_proto_document_document_proto_depIdxs = []int32{
 	0,  // 0: liveedit.v1.DocumentItem.role:type_name -> liveedit.v1.Role
@@ -891,27 +1055,32 @@ var file_proto_document_document_proto_depIdxs = []int32{
 	0,  // 2: liveedit.v1.GetDocumentResponse.role:type_name -> liveedit.v1.Role
 	0,  // 3: liveedit.v1.InviteUserRequest.role:type_name -> liveedit.v1.Role
 	0,  // 4: liveedit.v1.SetUserRoleRequest.role:type_name -> liveedit.v1.Role
-	1,  // 5: liveedit.v1.DocumentService.CreateDocument:input_type -> liveedit.v1.CreateDocumentRequest
-	3,  // 6: liveedit.v1.DocumentService.GetDocuments:input_type -> liveedit.v1.GetDocumentsRequest
-	6,  // 7: liveedit.v1.DocumentService.GetDocument:input_type -> liveedit.v1.GetDocumentRequest
-	8,  // 8: liveedit.v1.DocumentService.DeleteDocument:input_type -> liveedit.v1.DeleteDocumentRequest
-	12, // 9: liveedit.v1.DocumentService.UpdateDocument:input_type -> liveedit.v1.UpdateDocumentRequest
-	9,  // 10: liveedit.v1.DocumentService.InviteUser:input_type -> liveedit.v1.InviteUserRequest
-	10, // 11: liveedit.v1.DocumentService.SetUserRole:input_type -> liveedit.v1.SetUserRoleRequest
-	11, // 12: liveedit.v1.DocumentService.RevokeAccess:input_type -> liveedit.v1.RevokeAccessRequest
-	2,  // 13: liveedit.v1.DocumentService.CreateDocument:output_type -> liveedit.v1.CreateDocumentResponse
-	5,  // 14: liveedit.v1.DocumentService.GetDocuments:output_type -> liveedit.v1.GetDocumentsResponse
-	7,  // 15: liveedit.v1.DocumentService.GetDocument:output_type -> liveedit.v1.GetDocumentResponse
-	14, // 16: liveedit.v1.DocumentService.DeleteDocument:output_type -> google.protobuf.Empty
-	13, // 17: liveedit.v1.DocumentService.UpdateDocument:output_type -> liveedit.v1.UpdateDocumentResponse
-	14, // 18: liveedit.v1.DocumentService.InviteUser:output_type -> google.protobuf.Empty
-	14, // 19: liveedit.v1.DocumentService.SetUserRole:output_type -> google.protobuf.Empty
-	14, // 20: liveedit.v1.DocumentService.RevokeAccess:output_type -> google.protobuf.Empty
-	13, // [13:21] is the sub-list for method output_type
-	5,  // [5:13] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	0,  // 5: liveedit.v1.CreateInviteLinkRequest.role:type_name -> liveedit.v1.Role
+	1,  // 6: liveedit.v1.DocumentService.CreateDocument:input_type -> liveedit.v1.CreateDocumentRequest
+	3,  // 7: liveedit.v1.DocumentService.GetDocuments:input_type -> liveedit.v1.GetDocumentsRequest
+	6,  // 8: liveedit.v1.DocumentService.GetDocument:input_type -> liveedit.v1.GetDocumentRequest
+	8,  // 9: liveedit.v1.DocumentService.DeleteDocument:input_type -> liveedit.v1.DeleteDocumentRequest
+	12, // 10: liveedit.v1.DocumentService.UpdateDocument:input_type -> liveedit.v1.UpdateDocumentRequest
+	14, // 11: liveedit.v1.DocumentService.CreateInviteLink:input_type -> liveedit.v1.CreateInviteLinkRequest
+	16, // 12: liveedit.v1.DocumentService.AcceptInvite:input_type -> liveedit.v1.AcceptInviteRequest
+	9,  // 13: liveedit.v1.DocumentService.InviteUser:input_type -> liveedit.v1.InviteUserRequest
+	10, // 14: liveedit.v1.DocumentService.SetUserRole:input_type -> liveedit.v1.SetUserRoleRequest
+	11, // 15: liveedit.v1.DocumentService.RevokeAccess:input_type -> liveedit.v1.RevokeAccessRequest
+	2,  // 16: liveedit.v1.DocumentService.CreateDocument:output_type -> liveedit.v1.CreateDocumentResponse
+	5,  // 17: liveedit.v1.DocumentService.GetDocuments:output_type -> liveedit.v1.GetDocumentsResponse
+	7,  // 18: liveedit.v1.DocumentService.GetDocument:output_type -> liveedit.v1.GetDocumentResponse
+	17, // 19: liveedit.v1.DocumentService.DeleteDocument:output_type -> google.protobuf.Empty
+	13, // 20: liveedit.v1.DocumentService.UpdateDocument:output_type -> liveedit.v1.UpdateDocumentResponse
+	15, // 21: liveedit.v1.DocumentService.CreateInviteLink:output_type -> liveedit.v1.CreateInviteLinkResponse
+	17, // 22: liveedit.v1.DocumentService.AcceptInvite:output_type -> google.protobuf.Empty
+	17, // 23: liveedit.v1.DocumentService.InviteUser:output_type -> google.protobuf.Empty
+	17, // 24: liveedit.v1.DocumentService.SetUserRole:output_type -> google.protobuf.Empty
+	17, // 25: liveedit.v1.DocumentService.RevokeAccess:output_type -> google.protobuf.Empty
+	16, // [16:26] is the sub-list for method output_type
+	6,  // [6:16] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_document_document_proto_init() }
@@ -925,7 +1094,7 @@ func file_proto_document_document_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_document_document_proto_rawDesc), len(file_proto_document_document_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   13,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

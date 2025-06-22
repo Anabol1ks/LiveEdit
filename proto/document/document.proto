@@ -59,11 +59,6 @@ message DeleteDocumentRequest {
   uint64 id = 1 [(validate.rules).uint64.gt = 0];
 }
 
-message InviteUserRequest {
-  uint64 document_id = 1 [(validate.rules).uint64.gt = 0];
-  string email = 2 [(validate.rules).string.email = true];
-  Role role = 3 [(validate.rules).enum = {defined_only: true, not_in: [0]}]; // запрещаем ROLE_UNSPECIFIED
-}
 
 message SetUserRoleRequest {
   uint64 document_id = 1 [(validate.rules).uint64.gt = 0];
@@ -86,6 +81,20 @@ message UpdateDocumentResponse {
   string updated_at = 1;
 }
 
+message CreateInviteLinkRequest {
+  uint64 document_id = 1 [(validate.rules).uint64.gt = 0];
+  Role role = 2 [(validate.rules).enum = {in: [2, 3]}]; // Только EDITOR или VIEWER
+  string expires_at = 3; // Опционально, RFC3339
+}
+
+message CreateInviteLinkResponse {
+  string invite_token = 1;
+}
+
+message AcceptInviteRequest {
+  string invite_token = 1 [(validate.rules).string.min_len = 1];
+}
+
 // ========================
 // Сервис
 // ========================
@@ -97,8 +106,9 @@ service DocumentService {
   rpc DeleteDocument(DeleteDocumentRequest) returns (google.protobuf.Empty);
   rpc UpdateDocument(UpdateDocumentRequest) returns (UpdateDocumentResponse);
 
+  rpc CreateInviteLink(CreateInviteLinkRequest) returns (CreateInviteLinkResponse);
+  rpc AcceptInvite(AcceptInviteRequest) returns (google.protobuf.Empty);
 
-  rpc InviteUser(InviteUserRequest) returns (google.protobuf.Empty);
   rpc SetUserRole(SetUserRoleRequest) returns (google.protobuf.Empty);
   rpc RevokeAccess(RevokeAccessRequest) returns (google.protobuf.Empty);
 }
