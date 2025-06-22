@@ -3,12 +3,14 @@ package main
 import (
 	"net"
 
-	liveeditv1 "github.com/Anabol1ks/LiveEdit/gen/proto/user"
+	document_liveeditv1 "github.com/Anabol1ks/LiveEdit/gen/proto/document"
+	user_liveeditv1 "github.com/Anabol1ks/LiveEdit/gen/proto/user"
 	"github.com/Anabol1ks/LiveEdit/internal/auth"
 	"github.com/Anabol1ks/LiveEdit/internal/config"
 	"github.com/Anabol1ks/LiveEdit/internal/db"
 	"github.com/Anabol1ks/LiveEdit/internal/logger"
 	"github.com/Anabol1ks/LiveEdit/internal/middleware"
+	"github.com/Anabol1ks/LiveEdit/internal/service/document"
 	"github.com/Anabol1ks/LiveEdit/internal/service/user"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -50,7 +52,14 @@ func main() {
 		Log: log,
 	}
 
-	liveeditv1.RegisterUserServiceServer(grpcServer, userService)
+	user_liveeditv1.RegisterUserServiceServer(grpcServer, userService)
+
+	documentService := &document.Service{
+		DB:  db.DB,
+		JWT: jwtManager,
+		Log: log,
+	}
+	document_liveeditv1.RegisterDocumentServiceServer(grpcServer, documentService)
 
 	lis, err := net.Listen("tcp", cfg.AppPort) // напр. ":50051"
 	if err != nil {

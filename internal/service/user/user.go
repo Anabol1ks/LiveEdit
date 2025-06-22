@@ -25,8 +25,9 @@ type Service struct {
 
 func (s *Service) Register(ctx context.Context, req *liveeditv1.RegisterRequest) (*liveeditv1.AuthResponse, error) {
 	op := "Register"
-	s.Log.Info("[%s] start", zap.String("op", op))
+	s.Log.Info("start", zap.String("op", op))
 	if err := req.Validate(); err != nil {
+		s.Log.Warn("[%s] failed", zap.String("op", op), zap.Error(err))
 		return nil, status.Errorf(codes.InvalidArgument, "validation failed: %v", err)
 	}
 
@@ -63,7 +64,8 @@ func (s *Service) Register(ctx context.Context, req *liveeditv1.RegisterRequest)
 
 func (s *Service) Login(ctx context.Context, req *liveeditv1.LoginRequest) (*liveeditv1.AuthResponse, error) {
 	op := "Login"
-	s.Log.Info("[%s] start", zap.String("op", op))
+	s.Log.Info("start", zap.String("op", op))
+
 	if err := req.Validate(); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "validation failed: %v", err)
 	}
@@ -90,7 +92,7 @@ func (s *Service) Login(ctx context.Context, req *liveeditv1.LoginRequest) (*liv
 
 func (s *Service) GetProfile(ctx context.Context, _ *emptypb.Empty) (*liveeditv1.ProfileResponse, error) {
 	op := "GetProfile"
-	s.Log.Info("[%s] start", zap.String("op", op))
+	s.Log.Info("start", zap.String("op", op))
 
 	userID, ok := ctx.Value("user_id").(uint64)
 	if !ok {
@@ -115,7 +117,7 @@ func (s *Service) GetProfile(ctx context.Context, _ *emptypb.Empty) (*liveeditv1
 
 func (s *Service) RefreshToken(ctx context.Context, req *liveeditv1.RefreshRequest) (*liveeditv1.AuthResponse, error) {
 	op := "RefreshToken"
-	s.Log.Info("[%s] start", zap.String("op", op))
+	s.Log.Info("start", zap.String("op", op))
 
 	if req.RefreshToken == "" {
 		return nil, status.Error(codes.InvalidArgument, "refresh token is required")

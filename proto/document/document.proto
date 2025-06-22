@@ -42,16 +42,17 @@ message GetDocumentsResponse {
   repeated DocumentItem documents = 1;
 }
 
-message GetDocumentContentRequest {
-  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+message GetDocumentRequest {
+  uint64 id = 1 [(validate.rules).uint64 = {gt: 0}];
 }
 
-message GetDocumentContentResponse {
+message GetDocumentResponse {
   uint64 id = 1;
   string title = 2;
   string content = 3;
-  string created_at = 4;
-  string updated_at = 5;
+  Role role = 4;
+  string created_at = 5;
+  string updated_at = 6;
 }
 
 message DeleteDocumentRequest {
@@ -82,7 +83,7 @@ message RevokeAccessRequest {
 service DocumentService {
   rpc CreateDocument(CreateDocumentRequest) returns (CreateDocumentResponse);
   rpc GetDocuments(GetDocumentsRequest) returns (GetDocumentsResponse);
-  rpc GetDocumentContent(GetDocumentContentRequest) returns (GetDocumentContentResponse);
+  rpc GetDocument(GetDocumentRequest) returns (GetDocumentResponse);
   rpc DeleteDocument(DeleteDocumentRequest) returns (google.protobuf.Empty);
 
   rpc InviteUser(InviteUserRequest) returns (google.protobuf.Empty);
