@@ -17,4 +17,5 @@ func main() {
 	log.Info("Logger initialized successfully")
 
 	db.ConnectDB(cfg, log)
+	db.Migrate(log)
 }

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "anabol1ks.liveedit.v1;user";
+
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+
+service UserService {
+  rpc Register(RegisterRequest) returns (AuthResponse);
+  rpc Login(LoginRequest) returns (AuthResponse);
+  rpc RefreshToken(RefreshRequest) returns (AuthResponse);
+  rpc GetProfile(google.protobuf.Empty) returns (ProfileResponse);
+}
+
+message RegisterRequest {
+  string email = 1 [(validate.rules).string = {email: true, min_len: 5, max_len: 64}];
+  string username = 2 [(validate.rules).string = {min_len: 3, max_len: 32}];
+  string password = 3 [(validate.rules).string = {min_len: 8, max_len: 64}];
+}
+
+message LoginRequest {
+  string email = 1 [(validate.rules).string = {email: true}];
+  string password = 2 [(validate.rules).string = {min_len: 8}];
+}
+
+message RefreshRequest {
+  string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
+}
+
+message AuthResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message ProfileResponse {
+  uint64 id = 1;
+  string email = 2;
+  string username = 3;
+  string created_at = 4;
+}
