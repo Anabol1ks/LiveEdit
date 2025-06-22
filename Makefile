@@ -1,5 +1,6 @@
 PROTO_DIR = proto/
-PROTO_FILE = $(PROTO_DIR)/user/user.proto
+PROTO_FILE = $(PROTO_DIR)document/document.proto
+# PROTO_FILE = $(PROTO_DIR)user/user.proto
 GEN_DIR = gen
 
 # Путь до validate.proto (можно через buf или вручную)

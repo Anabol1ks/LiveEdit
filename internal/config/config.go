@@ -3,6 +3,8 @@ package config
 import (
 	"log"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -13,6 +15,8 @@ type Config struct {
 	DB            DBConfig
 	AccessSecret  string
 	RefreshSecret string
+	AccessTTL     time.Duration
+	RefreshTTL    time.Duration
 }
 
 type DBConfig struct {
@@ -42,6 +46,8 @@ func Load() *Config {
 		},
 		AccessSecret:  getEnv("ACCESS_SECRET", "access-secret"),
 		RefreshSecret: getEnv("REFRESH_SECRET", "refresh-secret"),
+		AccessTTL:     parseDurationWithDays(getEnv("ACCESS_TTL", "15m")),
+		RefreshTTL:    parseDurationWithDays(getEnv("REFRESH_TTL", "7d")),
 	}
 }
 
@@ -50,4 +56,22 @@ func getEnv(key, fallback string) string {
 		return val
 	}
 	return fallback
+}
+
+func parseDurationWithDays(s string) time.Duration {
+	if strings.HasSuffix(s, "d") {
+		daysStr := strings.TrimSuffix(s, "d")
+		days, err := time.ParseDuration(daysStr + "h")
+		if err != nil {
+			log.Printf("Ошибка парсинга TTL: %v", err)
+			return 0
+		}
+		return time.Duration(24) * days
+	}
+
+	duration, err := time.ParseDuration(s)
+	if err != nil {
+		return 0
+	}
+	return duration
 }

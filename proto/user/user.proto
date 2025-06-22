@@ -5,7 +5,7 @@ package user;
 option go_package = "anabol1ks.liveedit.v1;user";
 
 import "google/protobuf/empty.proto";
-import "validate/validate.proto";
+// import "validate/validate.proto";
 
 service UserService {
   rpc Register(RegisterRequest) returns (AuthResponse);

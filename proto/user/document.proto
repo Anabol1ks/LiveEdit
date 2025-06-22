@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package liveedit.v1;
+
+option go_package = "anabol1ks.liveedit.v1;user";
+
+import "validate/validate.proto";
+import "google/protobuf/empty.proto";
+
+// Роли пользователя
+enum Role {
+  ROLE_UNSPECIFIED = 0;
+  OWNER = 1;
+  EDITOR = 2;
+  VIEWER = 3;
+}
+
+// ========================
+// Запросы / Ответы
+// ========================
+
+message CreateDocumentRequest {
+  string title = 1 [(validate.rules).string = {min_len: 1, max_len: 255}];
+  string content = 2;
+}
+
+message CreateDocumentResponse {
+  uint64 id = 1;
+}
+
+message GetDocumentsRequest {}
+
+message DocumentItem {
+  uint64 id = 1;
+  string title = 2;
+  string created_at = 3;
+  string updated_at = 4;
+  Role role = 5;
+}
+
+message GetDocumentsResponse {
+  repeated DocumentItem documents = 1;
+}
+
+message GetDocumentContentRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message GetDocumentContentResponse {
+  uint64 id = 1;
+  string title = 2;
+  string content = 3;
+  string created_at = 4;
+  string updated_at = 5;
+}
+
+message DeleteDocumentRequest {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message InviteUserRequest {
+  uint64 document_id = 1 [(validate.rules).uint64.gt = 0];
+  string email = 2 [(validate.rules).string.email = true];
+  Role role = 3 [(validate.rules).enum = {defined_only: true, not_in: [0]}]; // запрещаем ROLE_UNSPECIFIED
+}
+
+message SetUserRoleRequest {
+  uint64 document_id = 1 [(validate.rules).uint64.gt = 0];
+  uint64 user_id = 2 [(validate.rules).uint64.gt = 0];
+  Role role = 3 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+}
+
+message RevokeAccessRequest {
+  uint64 document_id = 1 [(validate.rules).uint64.gt = 0];
+  uint64 user_id = 2 [(validate.rules).uint64.gt = 0];
+}
+
+// ========================
+// Сервис
+// ========================
+
+service DocumentService {
+  rpc CreateDocument(CreateDocumentRequest) returns (CreateDocumentResponse);
+  rpc GetDocuments(GetDocumentsRequest) returns (GetDocumentsResponse);
+  rpc GetDocumentContent(GetDocumentContentRequest) returns (GetDocumentContentResponse);
+  rpc DeleteDocument(DeleteDocumentRequest) returns (google.protobuf.Empty);
+
+  rpc InviteUser(InviteUserRequest) returns (google.protobuf.Empty);
+  rpc SetUserRole(SetUserRoleRequest) returns (google.protobuf.Empty);
+  rpc RevokeAccess(RevokeAccessRequest) returns (google.protobuf.Empty);
+}
