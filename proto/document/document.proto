@@ -76,6 +76,16 @@ message RevokeAccessRequest {
   uint64 user_id = 2 [(validate.rules).uint64.gt = 0];
 }
 
+message UpdateDocumentRequest {
+  uint64 document_id = 1 [(validate.rules).uint64 = {gt: 0}];
+  string title = 2 [(validate.rules).string = {min_len: 1, max_len: 255}];
+  string content = 3;
+}
+
+message UpdateDocumentResponse {
+  string updated_at = 1;
+}
+
 // ========================
 // Сервис
 // ========================
@@ -85,6 +95,8 @@ service DocumentService {
   rpc GetDocuments(GetDocumentsRequest) returns (GetDocumentsResponse);
   rpc GetDocument(GetDocumentRequest) returns (GetDocumentResponse);
   rpc DeleteDocument(DeleteDocumentRequest) returns (google.protobuf.Empty);
+  rpc UpdateDocument(UpdateDocumentRequest) returns (UpdateDocumentResponse);
+
 
   rpc InviteUser(InviteUserRequest) returns (google.protobuf.Empty);
   rpc SetUserRole(SetUserRoleRequest) returns (google.protobuf.Empty);

@@ -24,6 +24,7 @@ const (
 	DocumentService_GetDocuments_FullMethodName   = "/liveedit.v1.DocumentService/GetDocuments"
 	DocumentService_GetDocument_FullMethodName    = "/liveedit.v1.DocumentService/GetDocument"
 	DocumentService_DeleteDocument_FullMethodName = "/liveedit.v1.DocumentService/DeleteDocument"
+	DocumentService_UpdateDocument_FullMethodName = "/liveedit.v1.DocumentService/UpdateDocument"
 	DocumentService_InviteUser_FullMethodName     = "/liveedit.v1.DocumentService/InviteUser"
 	DocumentService_SetUserRole_FullMethodName    = "/liveedit.v1.DocumentService/SetUserRole"
 	DocumentService_RevokeAccess_FullMethodName   = "/liveedit.v1.DocumentService/RevokeAccess"
@@ -37,6 +38,7 @@ type DocumentServiceClient interface {
 	GetDocuments(ctx context.Context, in *GetDocumentsRequest, opts ...grpc.CallOption) (*GetDocumentsResponse, error)
 	GetDocument(ctx context.Context, in *GetDocumentRequest, opts ...grpc.CallOption) (*GetDocumentResponse, error)
 	DeleteDocument(ctx context.Context, in *DeleteDocumentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	UpdateDocument(ctx context.Context, in *UpdateDocumentRequest, opts ...grpc.CallOption) (*UpdateDocumentResponse, error)
 	InviteUser(ctx context.Context, in *InviteUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SetUserRole(ctx context.Context, in *SetUserRoleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RevokeAccess(ctx context.Context, in *RevokeAccessRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -90,6 +92,16 @@ func (c *documentServiceClient) DeleteDocument(ctx context.Context, in *DeleteDo
 	return out, nil
 }
 
+func (c *documentServiceClient) UpdateDocument(ctx context.Context, in *UpdateDocumentRequest, opts ...grpc.CallOption) (*UpdateDocumentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateDocumentResponse)
+	err := c.cc.Invoke(ctx, DocumentService_UpdateDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *documentServiceClient) InviteUser(ctx context.Context, in *InviteUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
@@ -128,6 +140,7 @@ type DocumentServiceServer interface {
 	GetDocuments(context.Context, *GetDocumentsRequest) (*GetDocumentsResponse, error)
 	GetDocument(context.Context, *GetDocumentRequest) (*GetDocumentResponse, error)
 	DeleteDocument(context.Context, *DeleteDocumentRequest) (*emptypb.Empty, error)
+	UpdateDocument(context.Context, *UpdateDocumentRequest) (*UpdateDocumentResponse, error)
 	InviteUser(context.Context, *InviteUserRequest) (*emptypb.Empty, error)
 	SetUserRole(context.Context, *SetUserRoleRequest) (*emptypb.Empty, error)
 	RevokeAccess(context.Context, *RevokeAccessRequest) (*emptypb.Empty, error)
@@ -152,6 +165,9 @@ func (UnimplementedDocumentServiceServer) GetDocument(context.Context, *GetDocum
 }
 func (UnimplementedDocumentServiceServer) DeleteDocument(context.Context, *DeleteDocumentRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDocument not implemented")
+}
+func (UnimplementedDocumentServiceServer) UpdateDocument(context.Context, *UpdateDocumentRequest) (*UpdateDocumentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDocument not implemented")
 }
 func (UnimplementedDocumentServiceServer) InviteUser(context.Context, *InviteUserRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InviteUser not implemented")
@@ -255,6 +271,24 @@ func _DocumentService_DeleteDocument_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DocumentService_UpdateDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDocumentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).UpdateDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_UpdateDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).UpdateDocument(ctx, req.(*UpdateDocumentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DocumentService_InviteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(InviteUserRequest)
 	if err := dec(in); err != nil {
@@ -331,6 +365,10 @@ var DocumentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteDocument",
 			Handler:    _DocumentService_DeleteDocument_Handler,
+		},
+		{
+			MethodName: "UpdateDocument",
+			Handler:    _DocumentService_UpdateDocument_Handler,
 		},
 		{
 			MethodName: "InviteUser",

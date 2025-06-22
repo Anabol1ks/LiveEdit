@@ -672,6 +672,110 @@ func (x *RevokeAccessRequest) GetUserId() uint64 {
 	return 0
 }
 
+type UpdateDocumentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DocumentId    uint64                 `protobuf:"varint,1,opt,name=document_id,json=documentId,proto3" json:"document_id,omitempty"`
+	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateDocumentRequest) Reset() {
+	*x = UpdateDocumentRequest{}
+	mi := &file_proto_document_document_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateDocumentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateDocumentRequest) ProtoMessage() {}
+
+func (x *UpdateDocumentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_document_document_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateDocumentRequest.ProtoReflect.Descriptor instead.
+func (*UpdateDocumentRequest) Descriptor() ([]byte, []int) {
+	return file_proto_document_document_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *UpdateDocumentRequest) GetDocumentId() uint64 {
+	if x != nil {
+		return x.DocumentId
+	}
+	return 0
+}
+
+func (x *UpdateDocumentRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *UpdateDocumentRequest) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+type UpdateDocumentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UpdatedAt     string                 `protobuf:"bytes,1,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateDocumentResponse) Reset() {
+	*x = UpdateDocumentResponse{}
+	mi := &file_proto_document_document_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateDocumentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateDocumentResponse) ProtoMessage() {}
+
+func (x *UpdateDocumentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_document_document_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateDocumentResponse.ProtoReflect.Descriptor instead.
+func (*UpdateDocumentResponse) Descriptor() ([]byte, []int) {
+	return file_proto_document_document_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *UpdateDocumentResponse) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
 var File_proto_document_document_proto protoreflect.FileDescriptor
 
 const file_proto_document_document_proto_rawDesc = "" +
@@ -722,19 +826,29 @@ const file_proto_document_document_proto_rawDesc = "" +
 	"\x13RevokeAccessRequest\x12(\n" +
 	"\vdocument_id\x18\x01 \x01(\x04B\a\xfaB\x042\x02 \x00R\n" +
 	"documentId\x12 \n" +
-	"\auser_id\x18\x02 \x01(\x04B\a\xfaB\x042\x02 \x00R\x06userId*?\n" +
+	"\auser_id\x18\x02 \x01(\x04B\a\xfaB\x042\x02 \x00R\x06userId\"}\n" +
+	"\x15UpdateDocumentRequest\x12(\n" +
+	"\vdocument_id\x18\x01 \x01(\x04B\a\xfaB\x042\x02 \x00R\n" +
+	"documentId\x12 \n" +
+	"\x05title\x18\x02 \x01(\tB\n" +
+	"\xfaB\ar\x05\x10\x01\x18\xff\x01R\x05title\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\tR\acontent\"7\n" +
+	"\x16UpdateDocumentResponse\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x01 \x01(\tR\tupdatedAt*?\n" +
 	"\x04Role\x12\x14\n" +
 	"\x10ROLE_UNSPECIFIED\x10\x00\x12\t\n" +
 	"\x05OWNER\x10\x01\x12\n" +
 	"\n" +
 	"\x06EDITOR\x10\x02\x12\n" +
 	"\n" +
-	"\x06VIEWER\x10\x032\xb9\x04\n" +
+	"\x06VIEWER\x10\x032\x94\x05\n" +
 	"\x0fDocumentService\x12Y\n" +
 	"\x0eCreateDocument\x12\".liveedit.v1.CreateDocumentRequest\x1a#.liveedit.v1.CreateDocumentResponse\x12S\n" +
 	"\fGetDocuments\x12 .liveedit.v1.GetDocumentsRequest\x1a!.liveedit.v1.GetDocumentsResponse\x12P\n" +
 	"\vGetDocument\x12\x1f.liveedit.v1.GetDocumentRequest\x1a .liveedit.v1.GetDocumentResponse\x12L\n" +
-	"\x0eDeleteDocument\x12\".liveedit.v1.DeleteDocumentRequest\x1a\x16.google.protobuf.Empty\x12D\n" +
+	"\x0eDeleteDocument\x12\".liveedit.v1.DeleteDocumentRequest\x1a\x16.google.protobuf.Empty\x12Y\n" +
+	"\x0eUpdateDocument\x12\".liveedit.v1.UpdateDocumentRequest\x1a#.liveedit.v1.UpdateDocumentResponse\x12D\n" +
 	"\n" +
 	"InviteUser\x12\x1e.liveedit.v1.InviteUserRequest\x1a\x16.google.protobuf.Empty\x12F\n" +
 	"\vSetUserRole\x12\x1f.liveedit.v1.SetUserRoleRequest\x1a\x16.google.protobuf.Empty\x12H\n" +
@@ -753,7 +867,7 @@ func file_proto_document_document_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_document_document_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_document_document_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_proto_document_document_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_proto_document_document_proto_goTypes = []any{
 	(Role)(0),                      // 0: liveedit.v1.Role
 	(*CreateDocumentRequest)(nil),  // 1: liveedit.v1.CreateDocumentRequest
@@ -767,7 +881,9 @@ var file_proto_document_document_proto_goTypes = []any{
 	(*InviteUserRequest)(nil),      // 9: liveedit.v1.InviteUserRequest
 	(*SetUserRoleRequest)(nil),     // 10: liveedit.v1.SetUserRoleRequest
 	(*RevokeAccessRequest)(nil),    // 11: liveedit.v1.RevokeAccessRequest
-	(*emptypb.Empty)(nil),          // 12: google.protobuf.Empty
+	(*UpdateDocumentRequest)(nil),  // 12: liveedit.v1.UpdateDocumentRequest
+	(*UpdateDocumentResponse)(nil), // 13: liveedit.v1.UpdateDocumentResponse
+	(*emptypb.Empty)(nil),          // 14: google.protobuf.Empty
 }
 var file_proto_document_document_proto_depIdxs = []int32{
 	0,  // 0: liveedit.v1.DocumentItem.role:type_name -> liveedit.v1.Role
@@ -779,18 +895,20 @@ var file_proto_document_document_proto_depIdxs = []int32{
 	3,  // 6: liveedit.v1.DocumentService.GetDocuments:input_type -> liveedit.v1.GetDocumentsRequest
 	6,  // 7: liveedit.v1.DocumentService.GetDocument:input_type -> liveedit.v1.GetDocumentRequest
 	8,  // 8: liveedit.v1.DocumentService.DeleteDocument:input_type -> liveedit.v1.DeleteDocumentRequest
-	9,  // 9: liveedit.v1.DocumentService.InviteUser:input_type -> liveedit.v1.InviteUserRequest
-	10, // 10: liveedit.v1.DocumentService.SetUserRole:input_type -> liveedit.v1.SetUserRoleRequest
-	11, // 11: liveedit.v1.DocumentService.RevokeAccess:input_type -> liveedit.v1.RevokeAccessRequest
-	2,  // 12: liveedit.v1.DocumentService.CreateDocument:output_type -> liveedit.v1.CreateDocumentResponse
-	5,  // 13: liveedit.v1.DocumentService.GetDocuments:output_type -> liveedit.v1.GetDocumentsResponse
-	7,  // 14: liveedit.v1.DocumentService.GetDocument:output_type -> liveedit.v1.GetDocumentResponse
-	12, // 15: liveedit.v1.DocumentService.DeleteDocument:output_type -> google.protobuf.Empty
-	12, // 16: liveedit.v1.DocumentService.InviteUser:output_type -> google.protobuf.Empty
-	12, // 17: liveedit.v1.DocumentService.SetUserRole:output_type -> google.protobuf.Empty
-	12, // 18: liveedit.v1.DocumentService.RevokeAccess:output_type -> google.protobuf.Empty
-	12, // [12:19] is the sub-list for method output_type
-	5,  // [5:12] is the sub-list for method input_type
+	12, // 9: liveedit.v1.DocumentService.UpdateDocument:input_type -> liveedit.v1.UpdateDocumentRequest
+	9,  // 10: liveedit.v1.DocumentService.InviteUser:input_type -> liveedit.v1.InviteUserRequest
+	10, // 11: liveedit.v1.DocumentService.SetUserRole:input_type -> liveedit.v1.SetUserRoleRequest
+	11, // 12: liveedit.v1.DocumentService.RevokeAccess:input_type -> liveedit.v1.RevokeAccessRequest
+	2,  // 13: liveedit.v1.DocumentService.CreateDocument:output_type -> liveedit.v1.CreateDocumentResponse
+	5,  // 14: liveedit.v1.DocumentService.GetDocuments:output_type -> liveedit.v1.GetDocumentsResponse
+	7,  // 15: liveedit.v1.DocumentService.GetDocument:output_type -> liveedit.v1.GetDocumentResponse
+	14, // 16: liveedit.v1.DocumentService.DeleteDocument:output_type -> google.protobuf.Empty
+	13, // 17: liveedit.v1.DocumentService.UpdateDocument:output_type -> liveedit.v1.UpdateDocumentResponse
+	14, // 18: liveedit.v1.DocumentService.InviteUser:output_type -> google.protobuf.Empty
+	14, // 19: liveedit.v1.DocumentService.SetUserRole:output_type -> google.protobuf.Empty
+	14, // 20: liveedit.v1.DocumentService.RevokeAccess:output_type -> google.protobuf.Empty
+	13, // [13:21] is the sub-list for method output_type
+	5,  // [5:13] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
 	5,  // [5:5] is the sub-list for extension extendee
 	0,  // [0:5] is the sub-list for field type_name
@@ -807,7 +925,7 @@ func file_proto_document_document_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_document_document_proto_rawDesc), len(file_proto_document_document_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
