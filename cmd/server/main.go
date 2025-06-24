@@ -5,12 +5,15 @@ import (
 
 	document_liveeditv1 "github.com/Anabol1ks/LiveEdit/gen/proto/document"
 	user_liveeditv1 "github.com/Anabol1ks/LiveEdit/gen/proto/user"
+
+	editor_liveeditv1 "github.com/Anabol1ks/LiveEdit/gen/proto/editor"
 	"github.com/Anabol1ks/LiveEdit/internal/auth"
 	"github.com/Anabol1ks/LiveEdit/internal/config"
 	"github.com/Anabol1ks/LiveEdit/internal/db"
 	"github.com/Anabol1ks/LiveEdit/internal/logger"
 	"github.com/Anabol1ks/LiveEdit/internal/middleware"
 	"github.com/Anabol1ks/LiveEdit/internal/service/document"
+	"github.com/Anabol1ks/LiveEdit/internal/service/editor"
 	"github.com/Anabol1ks/LiveEdit/internal/service/user"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -43,7 +46,8 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(middleware.AuthInterceptor(jwtManager, publicMethods)),
+		grpc.UnaryInterceptor(middleware.AuthUnaryInterceptor(jwtManager, publicMethods)),
+		grpc.StreamInterceptor(middleware.AuthStreamInterceptor(jwtManager, publicMethods)),
 	)
 
 	userService := &user.Service{
@@ -60,6 +64,14 @@ func main() {
 		Log: log,
 	}
 	document_liveeditv1.RegisterDocumentServiceServer(grpcServer, documentService)
+
+	editorService := &editor.Service{
+		DB:  db.DB,
+		JWT: jwtManager,
+		Log: log,
+	}
+
+	editor_liveeditv1.RegisterEditorServiceServer(grpcServer, editorService)
 
 	lis, err := net.Listen("tcp", cfg.AppPort) // напр. ":50051"
 	if err != nil {

@@ -67,6 +67,7 @@ func (s *Service) CreateDocument(ctx context.Context, req *liveeditv1.CreateDocu
 		Id: uint64(document.ID),
 	}, nil
 }
+
 func (s *Service) GetDocuments(ctx context.Context, req *liveeditv1.GetDocumentsRequest) (*liveeditv1.GetDocumentsResponse, error) {
 	op := "GetDocuments"
 	s.Log.Info("start", zap.String("op", op))
@@ -355,6 +356,101 @@ func (s *Service) AcceptInvite(ctx context.Context, req *liveeditv1.AcceptInvite
 	invite.Used = true
 	if err := s.DB.Save(&invite).Error; err != nil {
 		s.Log.Warn("[%s] failed to mark invite used", zap.String("op", op), zap.Error(err))
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s *Service) SetUserRole(ctx context.Context, req *liveeditv1.SetUserRoleRequest) (*emptypb.Empty, error) {
+	op := "SetUserRole"
+	s.Log.Info("start", zap.String("op", op))
+
+	if err := req.Validate(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	requesterID, ok := ctx.Value("user_id").(uint64)
+	if !ok {
+		s.Log.Warn("[%s] user_id not found in context", zap.String("op", op))
+		return nil, status.Error(codes.Unauthenticated, "user_id not found in context")
+	}
+
+	var ownerAccess models.DocumentAccess
+	err := s.DB.Where("document_id = ? AND user_id = ? AND role = ?", req.DocumentId, requesterID, "OWNER").First(&ownerAccess).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, status.Error(codes.PermissionDenied, "only OWNER can change roles")
+		}
+		return nil, status.Error(codes.Internal, "db error")
+	}
+
+	var targetAccess models.DocumentAccess
+	err = s.DB.Where("document_id = ? AND user_id = ?", req.DocumentId, req.UserId).First(&targetAccess).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, status.Error(codes.NotFound, "target user not found")
+		}
+		return nil, status.Error(codes.Internal, "db error")
+	}
+
+	if targetAccess.Role == "OWNER" {
+		return nil, status.Error(codes.FailedPrecondition, "cannot change OWNER role")
+	}
+
+	newRole := req.Role.String()
+	targetAccess.Role = newRole
+	if err := s.DB.Save(&targetAccess).Error; err != nil {
+		return nil, status.Error(codes.Internal, "failed to update role")
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s *Service) RevokeAccess(ctx context.Context, req *liveeditv1.RevokeAccessRequest) (*emptypb.Empty, error) {
+	op := "RevorkeAccess"
+	s.Log.Info("start", zap.String("op", op))
+
+	if err := req.Validate(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	requesterID, ok := ctx.Value("user_id").(uint64)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "user_id not found in context")
+	}
+
+	if requesterID == req.UserId {
+		return nil, status.Error(codes.FailedPrecondition, "owner cannot revoke self")
+	}
+
+	var ownerAccess models.DocumentAccess
+	err := s.DB.
+		Where("document_id = ? AND user_id = ? AND role = ?", req.DocumentId, requesterID, "OWNER").
+		First(&ownerAccess).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, status.Error(codes.PermissionDenied, "only OWNER can revoke access")
+		}
+		return nil, status.Error(codes.Internal, "db error")
+	}
+
+	var targetAccess models.DocumentAccess
+	err = s.DB.
+		Where("document_id = ? AND user_id = ?", req.DocumentId, req.UserId).
+		First(&targetAccess).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, status.Error(codes.NotFound, "user not found")
+		}
+		return nil, status.Error(codes.Internal, "db error")
+	}
+
+	if targetAccess.Role == "OWNER" {
+		return nil, status.Error(codes.FailedPrecondition, "cannot revoke OWNER access")
+	}
+
+	if err := s.DB.Delete(&targetAccess).Error; err != nil {
+		return nil, status.Error(codes.Internal, "failed to revoke access")
 	}
 
 	return &emptypb.Empty{}, nil

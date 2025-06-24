@@ -941,207 +941,6 @@ var _ interface {
 	ErrorName() string
 } = DeleteDocumentRequestValidationError{}
 
-// Validate checks the field values on InviteUserRequest with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *InviteUserRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on InviteUserRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// InviteUserRequestMultiError, or nil if none found.
-func (m *InviteUserRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *InviteUserRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if m.GetDocumentId() <= 0 {
-		err := InviteUserRequestValidationError{
-			field:  "DocumentId",
-			reason: "value must be greater than 0",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if err := m._validateEmail(m.GetEmail()); err != nil {
-		err = InviteUserRequestValidationError{
-			field:  "Email",
-			reason: "value must be a valid email address",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if _, ok := _InviteUserRequest_Role_NotInLookup[m.GetRole()]; ok {
-		err := InviteUserRequestValidationError{
-			field:  "Role",
-			reason: "value must not be in list [ROLE_UNSPECIFIED]",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if _, ok := Role_name[int32(m.GetRole())]; !ok {
-		err := InviteUserRequestValidationError{
-			field:  "Role",
-			reason: "value must be one of the defined enum values",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if len(errors) > 0 {
-		return InviteUserRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *InviteUserRequest) _validateHostname(host string) error {
-	s := strings.ToLower(strings.TrimSuffix(host, "."))
-
-	if len(host) > 253 {
-		return errors.New("hostname cannot exceed 253 characters")
-	}
-
-	for _, part := range strings.Split(s, ".") {
-		if l := len(part); l == 0 || l > 63 {
-			return errors.New("hostname part must be non-empty and cannot exceed 63 characters")
-		}
-
-		if part[0] == '-' {
-			return errors.New("hostname parts cannot begin with hyphens")
-		}
-
-		if part[len(part)-1] == '-' {
-			return errors.New("hostname parts cannot end with hyphens")
-		}
-
-		for _, r := range part {
-			if (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '-' {
-				return fmt.Errorf("hostname parts can only contain alphanumeric characters or hyphens, got %q", string(r))
-			}
-		}
-	}
-
-	return nil
-}
-
-func (m *InviteUserRequest) _validateEmail(addr string) error {
-	a, err := mail.ParseAddress(addr)
-	if err != nil {
-		return err
-	}
-	addr = a.Address
-
-	if len(addr) > 254 {
-		return errors.New("email addresses cannot exceed 254 characters")
-	}
-
-	parts := strings.SplitN(addr, "@", 2)
-
-	if len(parts[0]) > 64 {
-		return errors.New("email address local phrase cannot exceed 64 characters")
-	}
-
-	return m._validateHostname(parts[1])
-}
-
-// InviteUserRequestMultiError is an error wrapping multiple validation errors
-// returned by InviteUserRequest.ValidateAll() if the designated constraints
-// aren't met.
-type InviteUserRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m InviteUserRequestMultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m InviteUserRequestMultiError) AllErrors() []error { return m }
-
-// InviteUserRequestValidationError is the validation error returned by
-// InviteUserRequest.Validate if the designated constraints aren't met.
-type InviteUserRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e InviteUserRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e InviteUserRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e InviteUserRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e InviteUserRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e InviteUserRequestValidationError) ErrorName() string {
-	return "InviteUserRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e InviteUserRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sInviteUserRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = InviteUserRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = InviteUserRequestValidationError{}
-
-var _InviteUserRequest_Role_NotInLookup = map[Role]struct{}{
-	0: {},
-}
-
 // Validate checks the field values on SetUserRoleRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -1186,21 +985,10 @@ func (m *SetUserRoleRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if _, ok := _SetUserRoleRequest_Role_NotInLookup[m.GetRole()]; ok {
+	if _, ok := _SetUserRoleRequest_Role_InLookup[m.GetRole()]; !ok {
 		err := SetUserRoleRequestValidationError{
 			field:  "Role",
-			reason: "value must not be in list [ROLE_UNSPECIFIED]",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if _, ok := Role_name[int32(m.GetRole())]; !ok {
-		err := SetUserRoleRequestValidationError{
-			field:  "Role",
-			reason: "value must be one of the defined enum values",
+			reason: "value must be in list [EDITOR VIEWER]",
 		}
 		if !all {
 			return err
@@ -1288,8 +1076,9 @@ var _ interface {
 	ErrorName() string
 } = SetUserRoleRequestValidationError{}
 
-var _SetUserRoleRequest_Role_NotInLookup = map[Role]struct{}{
-	0: {},
+var _SetUserRoleRequest_Role_InLookup = map[Role]struct{}{
+	2: {},
+	3: {},
 }
 
 // Validate checks the field values on RevokeAccessRequest with the rules

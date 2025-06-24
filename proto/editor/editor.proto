@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package liveedit.v1;
+
+option go_package = "anabol1ks.liveedit.v1;user";
+
+import "validate/validate.proto";
+
+service EditorService {
+  rpc EditDocument(stream EditStreamRequest) returns (stream EditStreamResponse);
+}
+
+message EditStreamRequest {
+  oneof payload {
+    InitSync init = 1;
+    EditOperation operation = 2;
+    CursorUpdate cursor = 3;
+  }
+}
+
+message EditStreamResponse {
+  oneof payload {
+    EditOperation operation = 1;
+    CursorUpdate cursor = 2;
+    InitSync init = 3;
+  }
+}
+
+message InitSync {
+  uint64 document_id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message EditOperation {
+  string client_id = 1;
+  uint64 document_id = 2;
+  int32 position = 3;
+  string text = 4; // вставленный/удалённый текст
+  bool is_insert = 5;
+  string timestamp = 6;
+}
+
+message CursorUpdate {
+  string client_id = 1;
+  uint64 document_id = 2;
+  int32 position = 3;
+}

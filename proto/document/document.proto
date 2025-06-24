@@ -63,7 +63,7 @@ message DeleteDocumentRequest {
 message SetUserRoleRequest {
   uint64 document_id = 1 [(validate.rules).uint64.gt = 0];
   uint64 user_id = 2 [(validate.rules).uint64.gt = 0];
-  Role role = 3 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+  Role role = 3 [(validate.rules).enum = {in: [2, 3]}];
 }
 
 message RevokeAccessRequest {
