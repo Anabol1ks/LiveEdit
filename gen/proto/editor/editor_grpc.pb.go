@@ -4,7 +4,7 @@
 // - protoc             v6.31.1
 // source: proto/editor/editor.proto
 
-package user
+package editorpb
 
 import (
 	context "context"

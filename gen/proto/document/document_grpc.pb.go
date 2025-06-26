@@ -4,7 +4,7 @@
 // - protoc             v6.31.1
 // source: proto/document/document.proto
 
-package user
+package documentpb
 
 import (
 	context "context"

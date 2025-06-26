@@ -4,7 +4,7 @@
 // 	protoc        v6.31.1
 // source: proto/user/user.proto
 
-package user
+package userpb
 
 import (
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
@@ -333,9 +333,10 @@ const file_proto_user_user_proto_rawDesc = "" +
 	"GetProfile\x12\x16.google.protobuf.Empty\x1a\x15.user.ProfileResponse\"*\x92A\x0eb\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\x82\xd3\xe4\x93\x02\x13\x12\x11/api/user/profileB\x9c\x01\x92A}Z{\n" +
+	"\x06Bearer\x12\x00\x82\xd3\xe4\x93\x02\x13\x12\x11/api/user/profileB\xb3\x01\x92A\x9c\x01\x12\x1d\n" +
+	"\bLiveEdit\x12\fLiveEdit API2\x031.0Z{\n" +
 	"y\n" +
-	"\x06Bearer\x12o\b\x02\x12ZJWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"\x1a\rAuthorization \x02Z\x1aanabol1ks.liveedit.v1;userb\x06proto3"
+	"\x06Bearer\x12o\b\x02\x12ZJWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"\x1a\rAuthorization \x02Z\x11proto/user;userpbb\x06proto3"
 
 var (
 	file_proto_user_user_proto_rawDescOnce sync.Once

@@ -1,8 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "proto/user/user.proto",
-    "version": "version not set"
+    "title": "LiveEdit",
+    "description": "LiveEdit API",
+    "version": "1.0"
   },
   "tags": [
     {

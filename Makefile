@@ -1,7 +1,5 @@
 PROTO_DIR = proto/
-# PROTO_FILE = $(PROTO_DIR)editor/editor.proto
-# PROTO_FILE = $(PROTO_DIR)document/document.proto
-PROTO_FILE = $(PROTO_DIR)user/user.proto
+PROTO_FILES = $(wildcard $(PROTO_DIR)*/*.proto)
 GEN_DIR = gen
 
 # Путь до validate.proto (можно через buf или вручную)
@@ -12,7 +10,7 @@ PROTO_INCLUDE = third_party
 all: generate
 
 generate:
-	protoc $(PROTO_FILE) \
+	protoc $(PROTO_FILES) \
 		--proto_path=. \
 		--proto_path=$(PROTO_INCLUDE) \
 		--go_out=$(GEN_DIR) --go_opt=paths=source_relative \
@@ -23,3 +21,5 @@ generate:
 
 clean:
 	rm -rf $(GEN_DIR)
+
+

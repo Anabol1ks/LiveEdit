@@ -2,10 +2,39 @@ syntax = "proto3";
 
 package liveedit.v1;
 
-option go_package = "anabol1ks.liveedit.v1;user";
+option go_package = "proto/document;documentpb";
 
-// import "validate/validate.proto";
+import "validate/validate.proto";
 import "google/protobuf/empty.proto";
+
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "LiveEdit"
+    version: "1.0"
+    description: "LiveEdit API"
+  }
+  security_definitions: {
+    security: {
+      key: "Bearer"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "Bearer"
+      value: {}
+    }
+  }
+};
 
 // Роли пользователя
 enum Role {
@@ -100,15 +129,55 @@ message AcceptInviteRequest {
 // ========================
 
 service DocumentService {
-  rpc CreateDocument(CreateDocumentRequest) returns (CreateDocumentResponse);
-  rpc GetDocuments(GetDocumentsRequest) returns (GetDocumentsResponse);
-  rpc GetDocument(GetDocumentRequest) returns (GetDocumentResponse);
-  rpc DeleteDocument(DeleteDocumentRequest) returns (google.protobuf.Empty);
-  rpc UpdateDocument(UpdateDocumentRequest) returns (UpdateDocumentResponse);
-
-  rpc CreateInviteLink(CreateInviteLinkRequest) returns (CreateInviteLinkResponse);
-  rpc AcceptInvite(AcceptInviteRequest) returns (google.protobuf.Empty);
-
-  rpc SetUserRole(SetUserRoleRequest) returns (google.protobuf.Empty);
-  rpc RevokeAccess(RevokeAccessRequest) returns (google.protobuf.Empty);
+  rpc CreateDocument(CreateDocumentRequest) returns (CreateDocumentResponse) {
+    option (google.api.http) = {
+      post: "/api/document"
+      body: "*"
+    };
+  }
+  rpc GetDocuments(GetDocumentsRequest) returns (GetDocumentsResponse) {
+    option (google.api.http) = {
+      get: "/api/document"
+    };
+  }
+  rpc GetDocument(GetDocumentRequest) returns (GetDocumentResponse) {
+    option (google.api.http) = {
+      get: "/api/document/{id}"
+    };
+  }
+  rpc DeleteDocument(DeleteDocumentRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/document/{id}"
+    };
+  }
+  rpc UpdateDocument(UpdateDocumentRequest) returns (UpdateDocumentResponse) {
+    option (google.api.http) = {
+      patch: "/api/document/{document_id}"
+      body: "*"
+    };
+  }
+  rpc CreateInviteLink(CreateInviteLinkRequest) returns (CreateInviteLinkResponse) {
+    option (google.api.http) = {
+      post: "/api/document/{document_id}/invite"
+      body: "*"
+    };
+  }
+  rpc AcceptInvite(AcceptInviteRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/document/invite/accept"
+      body: "*"
+    };
+  }
+  rpc SetUserRole(SetUserRoleRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/document/{document_id}/role"
+      body: "*"
+    };
+  }
+  rpc RevokeAccess(RevokeAccessRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/document/{document_id}/revoke"
+      body: "*"
+    };
+  }
 }

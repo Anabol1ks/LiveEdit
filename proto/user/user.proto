@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package user;
 
-option go_package = "anabol1ks.liveedit.v1;user";
+option go_package = "proto/user;userpb";
 
 import "google/protobuf/empty.proto";
 import "validate/validate.proto";
@@ -10,6 +10,11 @@ import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "LiveEdit"
+    version: "1.0"
+    description: "LiveEdit API"
+  }
   security_definitions: {
     security: {
       key: "Bearer"

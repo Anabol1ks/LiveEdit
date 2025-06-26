@@ -4,10 +4,12 @@
 // 	protoc        v6.31.1
 // source: proto/document/document.proto
 
-package user
+package documentpb
 
 import (
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -868,7 +870,7 @@ var File_proto_document_document_proto protoreflect.FileDescriptor
 
 const file_proto_document_document_proto_rawDesc = "" +
 	"\n" +
-	"\x1dproto/document/document.proto\x12\vliveedit.v1\x1a\x17validate/validate.proto\x1a\x1bgoogle/protobuf/empty.proto\"S\n" +
+	"\x1dproto/document/document.proto\x12\vliveedit.v1\x1a\x17validate/validate.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"S\n" +
 	"\x15CreateDocumentRequest\x12 \n" +
 	"\x05title\x18\x01 \x01(\tB\n" +
 	"\xfaB\ar\x05\x10\x01\x18\xff\x01R\x05title\x12\x18\n" +
@@ -935,17 +937,23 @@ const file_proto_document_document_proto_rawDesc = "" +
 	"\n" +
 	"\x06EDITOR\x10\x02\x12\n" +
 	"\n" +
-	"\x06VIEWER\x10\x032\xf9\x05\n" +
-	"\x0fDocumentService\x12Y\n" +
-	"\x0eCreateDocument\x12\".liveedit.v1.CreateDocumentRequest\x1a#.liveedit.v1.CreateDocumentResponse\x12S\n" +
-	"\fGetDocuments\x12 .liveedit.v1.GetDocumentsRequest\x1a!.liveedit.v1.GetDocumentsResponse\x12P\n" +
-	"\vGetDocument\x12\x1f.liveedit.v1.GetDocumentRequest\x1a .liveedit.v1.GetDocumentResponse\x12L\n" +
-	"\x0eDeleteDocument\x12\".liveedit.v1.DeleteDocumentRequest\x1a\x16.google.protobuf.Empty\x12Y\n" +
-	"\x0eUpdateDocument\x12\".liveedit.v1.UpdateDocumentRequest\x1a#.liveedit.v1.UpdateDocumentResponse\x12_\n" +
-	"\x10CreateInviteLink\x12$.liveedit.v1.CreateInviteLinkRequest\x1a%.liveedit.v1.CreateInviteLinkResponse\x12H\n" +
-	"\fAcceptInvite\x12 .liveedit.v1.AcceptInviteRequest\x1a\x16.google.protobuf.Empty\x12F\n" +
-	"\vSetUserRole\x12\x1f.liveedit.v1.SetUserRoleRequest\x1a\x16.google.protobuf.Empty\x12H\n" +
-	"\fRevokeAccess\x12 .liveedit.v1.RevokeAccessRequest\x1a\x16.google.protobuf.EmptyB\x1cZ\x1aanabol1ks.liveedit.v1;userb\x06proto3"
+	"\x06VIEWER\x10\x032\xbf\b\n" +
+	"\x0fDocumentService\x12s\n" +
+	"\x0eCreateDocument\x12\".liveedit.v1.CreateDocumentRequest\x1a#.liveedit.v1.CreateDocumentResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/document\x12j\n" +
+	"\fGetDocuments\x12 .liveedit.v1.GetDocumentsRequest\x1a!.liveedit.v1.GetDocumentsResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/document\x12l\n" +
+	"\vGetDocument\x12\x1f.liveedit.v1.GetDocumentRequest\x1a .liveedit.v1.GetDocumentResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/document/{id}\x12h\n" +
+	"\x0eDeleteDocument\x12\".liveedit.v1.DeleteDocumentRequest\x1a\x16.google.protobuf.Empty\"\x1a\x82\xd3\xe4\x93\x02\x14*\x12/api/document/{id}\x12\x81\x01\n" +
+	"\x0eUpdateDocument\x12\".liveedit.v1.UpdateDocumentRequest\x1a#.liveedit.v1.UpdateDocumentResponse\"&\x82\xd3\xe4\x93\x02 :\x01*2\x1b/api/document/{document_id}\x12\x8e\x01\n" +
+	"\x10CreateInviteLink\x12$.liveedit.v1.CreateInviteLinkRequest\x1a%.liveedit.v1.CreateInviteLinkResponse\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/document/{document_id}/invite\x12p\n" +
+	"\fAcceptInvite\x12 .liveedit.v1.AcceptInviteRequest\x1a\x16.google.protobuf.Empty\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/document/invite/accept\x12s\n" +
+	"\vSetUserRole\x12\x1f.liveedit.v1.SetUserRoleRequest\x1a\x16.google.protobuf.Empty\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/document/{document_id}/role\x12w\n" +
+	"\fRevokeAccess\x12 .liveedit.v1.RevokeAccessRequest\x1a\x16.google.protobuf.Empty\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/document/{document_id}/revokeB\xc9\x01\x92A\xaa\x01\x12\x1d\n" +
+	"\bLiveEdit\x12\fLiveEdit API2\x031.0Z{\n" +
+	"y\n" +
+	"\x06Bearer\x12o\b\x02\x12ZJWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"\x1a\rAuthorization \x02b\f\n" +
+	"\n" +
+	"\n" +
+	"\x06Bearer\x12\x00Z\x19proto/document;documentpbb\x06proto3"
 
 var (
 	file_proto_document_document_proto_rawDescOnce sync.Once

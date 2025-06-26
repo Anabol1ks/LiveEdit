@@ -4,10 +4,12 @@
 // 	protoc        v6.31.1
 // source: proto/editor/editor.proto
 
-package user
+package editorpb
 
 import (
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -418,7 +420,7 @@ var File_proto_editor_editor_proto protoreflect.FileDescriptor
 
 const file_proto_editor_editor_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/editor/editor.proto\x12\vliveedit.v1\x1a\x17validate/validate.proto\"\xbc\x01\n" +
+	"\x19proto/editor/editor.proto\x12\vliveedit.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xbc\x01\n" +
 	"\x11EditStreamRequest\x12+\n" +
 	"\x04init\x18\x01 \x01(\v2\x15.liveedit.v1.InitSyncH\x00R\x04init\x12:\n" +
 	"\toperation\x18\x02 \x01(\v2\x1a.liveedit.v1.EditOperationH\x00R\toperation\x123\n" +
@@ -445,9 +447,15 @@ const file_proto_editor_editor_proto_rawDesc = "" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x1f\n" +
 	"\vdocument_id\x18\x02 \x01(\x04R\n" +
 	"documentId\x12\x1a\n" +
-	"\bposition\x18\x03 \x01(\x05R\bposition2d\n" +
-	"\rEditorService\x12S\n" +
-	"\fEditDocument\x12\x1e.liveedit.v1.EditStreamRequest\x1a\x1f.liveedit.v1.EditStreamResponse(\x010\x01B\x1cZ\x1aanabol1ks.liveedit.v1;userb\x06proto3"
+	"\bposition\x18\x03 \x01(\x05R\bposition2\x8c\x01\n" +
+	"\rEditorService\x12{\n" +
+	"\fEditDocument\x12\x1e.liveedit.v1.EditStreamRequest\x1a\x1f.liveedit.v1.EditStreamResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/editor/document/stream(\x010\x01B\xc5\x01\x92A\xaa\x01\x12\x1d\n" +
+	"\bLiveEdit\x12\fLiveEdit API2\x031.0Z{\n" +
+	"y\n" +
+	"\x06Bearer\x12o\b\x02\x12ZJWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"\x1a\rAuthorization \x02b\f\n" +
+	"\n" +
+	"\n" +
+	"\x06Bearer\x12\x00Z\x15proto/editor;editorpbb\x06proto3"
 
 var (
 	file_proto_editor_editor_proto_rawDescOnce sync.Once

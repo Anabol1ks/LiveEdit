@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"net"
 	"net/http"
 
@@ -10,6 +9,8 @@ import (
 	user_liveeditv1 "github.com/Anabol1ks/LiveEdit/gen/proto/user"
 	"github.com/go-redis/redis/v8"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+
+	_ "embed"
 
 	editor_liveeditv1 "github.com/Anabol1ks/LiveEdit/gen/proto/editor"
 	"github.com/Anabol1ks/LiveEdit/internal/auth"
@@ -89,6 +90,9 @@ func main() {
 
 	editor_liveeditv1.RegisterEditorServiceServer(grpcServer, editorService)
 
+	// Сначала запускаем REST Gateway в отдельной горутине
+	go runRESTGateway("localhost"+cfg.AppPort, log)
+
 	lis, err := net.Listen("tcp", cfg.AppPort) // напр. ":50051"
 	if err != nil {
 		log.Fatal("failed to listen: ", zap.String("error", err.Error()))
@@ -98,29 +102,27 @@ func main() {
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatal("server failed:", zap.String("error", err.Error()))
 	}
-
-	go runRESTGateway(cfg.AppPort)
-
 }
 
-func runRESTGateway(grpcEndpoint string) {
+func runRESTGateway(grpcEndpoint string, log *zap.Logger) {
 	ctx := context.Background()
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
 	// Регистрируем gRPC сервисы для gateway
 	if err := user_liveeditv1.RegisterUserServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
-		log.Fatalf("failed to register user service: %v", err)
+		log.Fatal("failed to register user service: ", zap.Error(err))
 	}
-	// if err := document_liveeditv1.RegisterDocumentServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
-	// 	log.Fatalf("failed to register document service: %v", err)
-	// }
-	// if err := editor_liveeditv1.RegisterEditorServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
-	// 	log.Fatalf("failed to register editor service: %v", err)
-	// }
+	if err := document_liveeditv1.RegisterDocumentServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
+		log.Fatal("failed to register document service: ", zap.Error(err))
+	}
+	if err := editor_liveeditv1.RegisterEditorServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
+		log.Fatal("failed to register editor service: ", zap.Error(err))
+	}
 
-	log.Println("REST gateway started on :8080")
+	log.Info("REST gateway started on :8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
-		log.Fatalf("failed to serve REST gateway: %v", err)
+		log.Fatal("failed to serve REST gateway: ", zap.Error(err))
 	}
+
 }
