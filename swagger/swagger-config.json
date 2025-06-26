@@ -1,0 +1,12 @@
+{
+	"swagger": "2.0",
+	"info": {
+		"title": "LiveEdit API",
+		"version": "1.0.0"
+	},
+	"apis": [
+		{ "url": "./gen/proto/user/user.swagger.json" },
+		{ "url": "./gen/proto/document/document.swagger.json" },
+		{ "url": "./gen/proto/editor/editor.swagger.json" }
+	]
+}

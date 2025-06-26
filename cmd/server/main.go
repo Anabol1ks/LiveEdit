@@ -23,6 +23,7 @@ import (
 	"github.com/Anabol1ks/LiveEdit/internal/service/user"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -107,9 +108,8 @@ func main() {
 func runRESTGateway(grpcEndpoint string, log *zap.Logger) {
 	ctx := context.Background()
 	mux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithInsecure()}
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 
-	// Регистрируем gRPC сервисы для gateway
 	if err := user_liveeditv1.RegisterUserServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
 		log.Fatal("failed to register user service: ", zap.Error(err))
 	}
@@ -120,9 +120,15 @@ func runRESTGateway(grpcEndpoint string, log *zap.Logger) {
 		log.Fatal("failed to register editor service: ", zap.Error(err))
 	}
 
-	log.Info("REST gateway started on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	// Создаём основной ServeMux для http
+	mainMux := http.NewServeMux()
+	// Swagger UI и статика
+	mainMux.Handle("/swagger/", http.StripPrefix("/swagger/", http.FileServer(http.Dir("./swagger"))))
+	// REST API
+	mainMux.Handle("/", mux)
+
+	log.Info("REST gateway and Swagger UI started on :8080")
+	if err := http.ListenAndServe(":8080", mainMux); err != nil {
 		log.Fatal("failed to serve REST gateway: ", zap.Error(err))
 	}
-
 }
