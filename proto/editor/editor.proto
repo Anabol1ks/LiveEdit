@@ -4,7 +4,7 @@ package liveedit.v1;
 
 option go_package = "anabol1ks.liveedit.v1;user";
 
-import "validate/validate.proto";
+// import "validate/validate.proto";
 
 service EditorService {
   rpc EditDocument(stream EditStreamRequest) returns (stream EditStreamResponse);
@@ -28,6 +28,7 @@ message EditStreamResponse {
 
 message InitSync {
   uint64 document_id = 1 [(validate.rules).uint64.gt = 0];
+  string client_id = 2;
 }
 
 message EditOperation {

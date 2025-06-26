@@ -5,14 +5,65 @@ package user;
 option go_package = "anabol1ks.liveedit.v1;user";
 
 import "google/protobuf/empty.proto";
-// import "validate/validate.proto";
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  security_definitions: {
+    security: {
+      key: "Bearer"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+      }
+    }
+  }
+//   security: {
+//     security_requirement: {
+//       key: "Bearer"
+//       value: {}
+//     }
+//   }
+};
 
 service UserService {
-  rpc Register(RegisterRequest) returns (AuthResponse);
-  rpc Login(LoginRequest) returns (AuthResponse);
-  rpc RefreshToken(RefreshRequest) returns (AuthResponse);
-  rpc GetProfile(google.protobuf.Empty) returns (ProfileResponse);
+  rpc Register(RegisterRequest) returns (AuthResponse) {
+    option (google.api.http) = {
+      post: "/api/user/register"
+      body: "*"
+    };
+  }
+  rpc Login(LoginRequest) returns (AuthResponse) {
+    option (google.api.http) = {
+      post: "/api/user/login"
+      body: "*"
+    };
+  }
+  rpc RefreshToken(RefreshRequest) returns (AuthResponse) {
+    option (google.api.http) = {
+      post: "/api/user/refresh"
+      body: "*"
+    };
+  }
+  rpc GetProfile(google.protobuf.Empty) returns (ProfileResponse) {
+    option (google.api.http) = {
+      get: "/api/user/profile"
+    };
+    // Если хотите явно только для этого метода:
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+    };
+  }
 }
+
 
 message RegisterRequest {
   string email = 1 [(validate.rules).string = {email: true, min_len: 5, max_len: 64}];

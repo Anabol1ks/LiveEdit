@@ -528,6 +528,8 @@ func (m *InitSync) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	// no validation rules for ClientId
+
 	if len(errors) > 0 {
 		return InitSyncMultiError(errors)
 	}

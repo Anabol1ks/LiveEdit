@@ -221,6 +221,7 @@ func (*EditStreamResponse_Init) isEditStreamResponse_Payload() {}
 type InitSync struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DocumentId    uint64                 `protobuf:"varint,1,opt,name=document_id,json=documentId,proto3" json:"document_id,omitempty"`
+	ClientId      string                 `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -260,6 +261,13 @@ func (x *InitSync) GetDocumentId() uint64 {
 		return x.DocumentId
 	}
 	return 0
+}
+
+func (x *InitSync) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
 }
 
 type EditOperation struct {
@@ -420,10 +428,11 @@ const file_proto_editor_editor_proto_rawDesc = "" +
 	"\toperation\x18\x01 \x01(\v2\x1a.liveedit.v1.EditOperationH\x00R\toperation\x123\n" +
 	"\x06cursor\x18\x02 \x01(\v2\x19.liveedit.v1.CursorUpdateH\x00R\x06cursor\x12+\n" +
 	"\x04init\x18\x03 \x01(\v2\x15.liveedit.v1.InitSyncH\x00R\x04initB\t\n" +
-	"\apayload\"4\n" +
+	"\apayload\"Q\n" +
 	"\bInitSync\x12(\n" +
 	"\vdocument_id\x18\x01 \x01(\x04B\a\xfaB\x042\x02 \x00R\n" +
-	"documentId\"\xb8\x01\n" +
+	"documentId\x12\x1b\n" +
+	"\tclient_id\x18\x02 \x01(\tR\bclientId\"\xb8\x01\n" +
 	"\rEditOperation\x12\x1b\n" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x1f\n" +
 	"\vdocument_id\x18\x02 \x01(\x04R\n" +

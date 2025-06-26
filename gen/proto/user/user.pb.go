@@ -8,6 +8,8 @@ package user
 
 import (
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -303,7 +305,7 @@ var File_proto_user_user_proto protoreflect.FileDescriptor
 
 const file_proto_user_user_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/user/user.proto\x12\x04user\x1a\x1bgoogle/protobuf/empty.proto\x1a\x17validate/validate.proto\"\x82\x01\n" +
+	"\x15proto/user/user.proto\x12\x04user\x1a\x1bgoogle/protobuf/empty.proto\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x82\x01\n" +
 	"\x0fRegisterRequest\x12!\n" +
 	"\x05email\x18\x01 \x01(\tB\v\xfaB\br\x06\x10\x05\x18@`\x01R\x05email\x12%\n" +
 	"\busername\x18\x02 \x01(\tB\t\xfaB\x06r\x04\x10\x03\x18 R\busername\x12%\n" +
@@ -322,13 +324,18 @@ const file_proto_user_user_proto_rawDesc = "" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
 	"\busername\x18\x03 \x01(\tR\busername\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\tR\tcreatedAt2\xec\x01\n" +
-	"\vUserService\x125\n" +
-	"\bRegister\x12\x15.user.RegisterRequest\x1a\x12.user.AuthResponse\x12/\n" +
-	"\x05Login\x12\x12.user.LoginRequest\x1a\x12.user.AuthResponse\x128\n" +
-	"\fRefreshToken\x12\x14.user.RefreshRequest\x1a\x12.user.AuthResponse\x12;\n" +
+	"created_at\x18\x04 \x01(\tR\tcreatedAt2\xf1\x02\n" +
+	"\vUserService\x12T\n" +
+	"\bRegister\x12\x15.user.RegisterRequest\x1a\x12.user.AuthResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/user/register\x12K\n" +
+	"\x05Login\x12\x12.user.LoginRequest\x1a\x12.user.AuthResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/api/user/login\x12V\n" +
+	"\fRefreshToken\x12\x14.user.RefreshRequest\x1a\x12.user.AuthResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/api/user/refresh\x12g\n" +
 	"\n" +
-	"GetProfile\x12\x16.google.protobuf.Empty\x1a\x15.user.ProfileResponseB\x1cZ\x1aanabol1ks.liveedit.v1;userb\x06proto3"
+	"GetProfile\x12\x16.google.protobuf.Empty\x1a\x15.user.ProfileResponse\"*\x92A\x0eb\f\n" +
+	"\n" +
+	"\n" +
+	"\x06Bearer\x12\x00\x82\xd3\xe4\x93\x02\x13\x12\x11/api/user/profileB\x9c\x01\x92A}Z{\n" +
+	"y\n" +
+	"\x06Bearer\x12o\b\x02\x12ZJWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"\x1a\rAuthorization \x02Z\x1aanabol1ks.liveedit.v1;userb\x06proto3"
 
 var (
 	file_proto_user_user_proto_rawDescOnce sync.Once
