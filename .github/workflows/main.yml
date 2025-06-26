@@ -1,0 +1,20 @@
+name: Sync to GitVerse
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Push to GitVerse
+        env:
+          GITVERSE_TOKEN: ${{ secrets.GITVERSE_TOKEN }}
+        run: |
+          git remote add gitverse https://oauth2:${GITVERSE_TOKEN}@gitverse.ru/Anabol1ks/LiveEdit.git
+          git push gitverse main
