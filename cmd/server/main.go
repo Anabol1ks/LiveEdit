@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"time"
 
 	document_liveeditv1 "github.com/Anabol1ks/LiveEdit/gen/proto/document"
 	user_liveeditv1 "github.com/Anabol1ks/LiveEdit/gen/proto/user"
@@ -88,6 +89,11 @@ func main() {
 		Log:   log,
 		Redis: rdb,
 	}
+
+	// Запуск автосохранения редактора
+	stopCh := make(chan struct{})
+	go editorService.StartAutoSave(5*time.Second, stopCh)
+	defer close(stopCh)
 
 	editor_liveeditv1.RegisterEditorServiceServer(grpcServer, editorService)
 

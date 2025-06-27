@@ -17,6 +17,7 @@ import (
 	"github.com/Anabol1ks/LiveEdit/internal/auth"
 	"github.com/Anabol1ks/LiveEdit/internal/models"
 	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/status"
 )
 
@@ -28,8 +29,18 @@ type Service struct {
 	Redis *redis.Client
 }
 
+type Operation struct {
+	Position    int32
+	Text        string
+	IsInsert    bool
+	ClientID    string
+	OperationId string // уникальный идентификатор операции
+}
+
 type DocumentSession struct {
-	Content string
+	Content    string
+	History    []*Operation        // история применённых операций
+	AppliedOps map[string]struct{} // set operation_id уже применённых операций
 }
 
 var sessions = make(map[uint64]*DocumentSession)
@@ -51,6 +62,7 @@ type ClientStream struct {
 var clientsMap = make(map[uint64][]ClientStream) // document_id -> list of client streams
 var clientsMu sync.RWMutex
 
+// Используем user_id как clientID
 func (s *Service) EditDocument(stream liveeditv1.EditorService_EditDocumentServer) error {
 	s.Log.Info("EditDocument stream started")
 	defer s.Log.Info("EditDocument stream closed")
@@ -60,7 +72,7 @@ func (s *Service) EditDocument(stream liveeditv1.EditorService_EditDocumentServe
 	if !ok {
 		return status.Error(codes.Internal, "user_id not found in context")
 	}
-	clientID := fmt.Sprintf("%d-%d", userID, time.Now().UnixNano())
+	clientID := fmt.Sprintf("%d", userID) // теперь clientID = user_id
 	docIDCh := make(chan uint64, 1)
 
 	go s.listenCursorUpdates(stream, clientID, docIDCh)
@@ -77,10 +89,11 @@ func (s *Service) EditDocument(stream liveeditv1.EditorService_EditDocumentServe
 
 		switch payload := req.Payload.(type) {
 		case *liveeditv1.EditStreamRequest_Init:
-			s.Log.Info("InitSync received", zap.Uint64("document_id", payload.Init.DocumentId))
+			s.Log.Info("InitSync received", zap.Uint64("document_id", payload.Init.DocumentId), zap.String("client_id", clientID))
 
 			docID := payload.Init.DocumentId
-			clientID := payload.Init.ClientId
+			// clientID уже определён выше
+			go s.listenEditUpdates(stream, clientID, docID)
 
 			clientsMu.Lock()
 			clientsMap[docID] = append(clientsMap[docID], ClientStream{
@@ -121,7 +134,7 @@ func (s *Service) EditDocument(stream liveeditv1.EditorService_EditDocumentServe
 
 			sessionsMu.Lock()
 			if _, ok := sessions[docID]; !ok {
-				sessions[docID] = &DocumentSession{Content: document.Content}
+				sessions[docID] = &DocumentSession{Content: document.Content, AppliedOps: make(map[string]struct{})}
 			}
 			sessionsMu.Unlock()
 
@@ -130,8 +143,6 @@ func (s *Service) EditDocument(stream liveeditv1.EditorService_EditDocumentServe
 				Payload: &liveeditv1.EditStreamResponse_Init{
 					Init: &liveeditv1.InitSync{
 						DocumentId: docID,
-						// Дополнительно можно вернуть начальный текст
-						// или метаданные, если надо
 					},
 				},
 			})
@@ -140,10 +151,10 @@ func (s *Service) EditDocument(stream liveeditv1.EditorService_EditDocumentServe
 				return status.Error(codes.Internal, "failed to send InitSync")
 			}
 
-			s.Log.Info("InitSync sent", zap.Uint64("document_id", docID))
+			s.Log.Info("InitSync sent", zap.Uint64("document_id", docID), zap.String("client_id", clientID))
 		case *liveeditv1.EditStreamRequest_Operation:
-			s.Log.Info("EditOperation received", zap.String("text", payload.Operation.Text))
 			op := payload.Operation
+			operationId := uuid.NewString()
 			sessionsMu.Lock()
 			session, ok := sessions[op.DocumentId]
 			if !ok {
@@ -151,23 +162,42 @@ func (s *Service) EditDocument(stream liveeditv1.EditorService_EditDocumentServe
 				sessionsMu.Unlock()
 				return status.Error(codes.Internal, "no session for document")
 			}
-
-			if op.IsInsert {
-				if op.Position < 0 || op.Position > int32(len(session.Content)) {
-					sessionsMu.Unlock()
-					return status.Error(codes.InvalidArgument, "invalid position")
-				}
-				session.Content = session.Content[:op.Position] + op.Text + session.Content[op.Position:]
-			} else {
-				end := op.Position + int32(len(op.Text))
-				if op.Position < 0 || end > int32(len(session.Content)) || session.Content[op.Position:end] != op.Text {
-					sessionsMu.Unlock()
-					return status.Error(codes.InvalidArgument, "invalid deletion")
-				}
-				session.Content = session.Content[:op.Position] + session.Content[end:]
+			// Проверка: если операция уже применялась — пропускаем
+			if _, exists := session.AppliedOps[operationId]; exists {
+				s.Log.Warn("operation already applied (local)", zap.String("operationId", operationId))
+				sessionsMu.Unlock()
+				return nil
 			}
-			s.Log.Info("operation applied", zap.String("content", session.Content))
+			// Логирование до применения OT
+			s.Log.Info("Before applyWithOT", zap.String("content", session.Content), zap.String("op", op.Text), zap.String("clientID", clientID), zap.String("operationId", operationId))
+			applyWithOT(session, &Operation{
+				Position:    op.Position,
+				Text:        op.Text,
+				IsInsert:    op.IsInsert,
+				ClientID:    clientID,
+				OperationId: operationId,
+			})
+			session.AppliedOps[operationId] = struct{}{}
+			markDirty(op.DocumentId)
+			s.Log.Info("After applyWithOT", zap.String("content", session.Content), zap.String("clientID", clientID), zap.String("operationId", operationId))
 			sessionsMu.Unlock()
+
+			// --- Публикация операции в Redis ---
+			_, err = s.Redis.XAdd(ctx, &redis.XAddArgs{
+				Stream: fmt.Sprintf("edits:%d", op.DocumentId),
+				Values: map[string]interface{}{
+					"client_id":    clientID,
+					"is_insert":    op.IsInsert,
+					"position":     op.Position,
+					"text":         op.Text,
+					"operation_id": operationId,
+				},
+			}).Result()
+			trimRedisStream(s.Redis, fmt.Sprintf("edits:%d", op.DocumentId), 1000)
+			if err != nil {
+				s.Log.Error("failed to publish operation to Redis", zap.Error(err))
+			}
+			trimRedisStream(s.Redis, fmt.Sprintf("edits:%d", op.DocumentId), 1000)
 
 		case *liveeditv1.EditStreamRequest_Cursor:
 			s.Log.Info("CursorUpdate received", zap.Int("position", int(payload.Cursor.Position)))
@@ -177,6 +207,7 @@ func (s *Service) EditDocument(stream liveeditv1.EditorService_EditDocumentServe
 			select {
 			case docIDCh <- docID:
 			default:
+				s.Log.Warn("Unknown message in stream")
 			}
 			cursorMu.Lock()
 			if _, ok := cursorMap[docID]; !ok {
@@ -192,6 +223,8 @@ func (s *Service) EditDocument(stream liveeditv1.EditorService_EditDocumentServe
 					"position":  cursor.Position,
 				},
 			}).Result()
+			// Ограничиваем длину стрима курсоров (например, 500 событий)
+			trimRedisStream(s.Redis, fmt.Sprintf("cursors:%d", docID), 500)
 			if err != nil {
 				s.Log.Error("failed to publish cursor to Redis", zap.Error(err))
 			}
@@ -282,3 +315,221 @@ func (s *Service) listenCursorUpdates(stream liveeditv1.EditorService_EditDocume
 		}
 	}
 }
+
+func (s *Service) listenEditUpdates(stream liveeditv1.EditorService_EditDocumentServer, clientID string, docID uint64) {
+	ctx := stream.Context()
+	lastID := "$"
+	streamName := fmt.Sprintf("edits:%d", docID)
+
+	for {
+		res, err := s.Redis.XRead(ctx, &redis.XReadArgs{
+			Streams: []string{streamName, lastID},
+			Block:   0,
+			Count:   10,
+		}).Result()
+		if err != nil && err != context.Canceled {
+			s.Log.Error("Redis XRead (edit) error", zap.Error(err))
+			time.Sleep(100 * time.Millisecond)
+			continue
+		}
+
+		for _, xstream := range res {
+			for _, message := range xstream.Messages {
+				lastID = message.ID
+
+				msgClientID := message.Values["client_id"].(string)
+				operationId, _ := message.Values["operation_id"].(string)
+				pos, _ := strconv.ParseInt(message.Values["position"].(string), 10, 32)
+				text := message.Values["text"].(string)
+				isInsert, _ := strconv.ParseBool(fmt.Sprintf("%v", message.Values["is_insert"]))
+
+				sessionsMu.Lock()
+				session, ok := sessions[docID]
+				if ok {
+					// Проверка: если операция уже применялась — пропускаем
+					if _, exists := session.AppliedOps[operationId]; exists {
+						s.Log.Warn("operation already applied (redis)", zap.String("operationId", operationId))
+						sessionsMu.Unlock()
+						continue
+					}
+					s.Log.Info("Before applyWithOT (redis)", zap.String("content", session.Content), zap.String("op", text), zap.String("clientID", msgClientID), zap.String("operationId", operationId))
+					applyWithOT(session, &Operation{
+						Position:    int32(pos),
+						Text:        text,
+						IsInsert:    isInsert,
+						ClientID:    msgClientID,
+						OperationId: operationId,
+					})
+					session.AppliedOps[operationId] = struct{}{}
+					s.Log.Info("After applyWithOT (redis)", zap.String("content", session.Content), zap.String("clientID", msgClientID), zap.String("operationId", operationId))
+				}
+				sessionsMu.Unlock()
+
+				err := stream.Send(&liveeditv1.EditStreamResponse{
+					Payload: &liveeditv1.EditStreamResponse_Operation{
+						Operation: &liveeditv1.EditOperation{
+							ClientId:   msgClientID,
+							Position:   int32(pos),
+							Text:       text,
+							IsInsert:   isInsert,
+							DocumentId: docID,
+						},
+					},
+				})
+				if err != nil {
+					s.Log.Error("Failed to send edit operation to client", zap.Error(err))
+					return
+				}
+			}
+		}
+	}
+}
+
+// OT-трансформация операции относительно другой
+func transform(op, against *Operation) *Operation {
+	if op.IsInsert && against.IsInsert && against.Position <= op.Position {
+		op.Position += int32(len(against.Text))
+	}
+	if !against.IsInsert && against.Position < op.Position {
+		op.Position -= int32(len(against.Text))
+		if op.Position < against.Position {
+			op.Position = against.Position
+		}
+	}
+	return op
+}
+
+// Вспомогательные функции для корректной работы с Unicode (rune-based)
+func insertAt(s string, pos int32, text string) string {
+	r := []rune(s)
+	t := []rune(text)
+	if pos < 0 || pos > int32(len(r)) {
+		return s
+	}
+	out := append(r[:pos], append(t, r[pos:]...)...)
+	return string(out)
+}
+
+func deleteAt(s string, pos int32, text string) string {
+	r := []rune(s)
+	t := []rune(text)
+	end := pos + int32(len(t))
+	if pos < 0 || end > int32(len(r)) {
+		return s
+	}
+	for i := int32(0); i < int32(len(t)); i++ {
+		if r[pos+i] != t[i] {
+			return s
+		}
+	}
+	out := append(r[:pos], r[end:]...)
+	return string(out)
+}
+
+// Применение операции с OT
+func applyWithOT(session *DocumentSession, op *Operation) {
+	for _, prev := range session.History {
+		// Не трансформируем относительно своих же операций
+		if prev.ClientID == op.ClientID {
+			continue
+		}
+		op = transform(op, prev)
+	}
+	if op.IsInsert {
+		session.Content = insertAt(session.Content, op.Position, op.Text)
+	} else {
+		session.Content = deleteAt(session.Content, op.Position, op.Text)
+	}
+	session.History = append(session.History, op)
+}
+
+// Периодическое сохранение всех сессий в БД
+func (s *Service) StartAutoSave(interval time.Duration, stopCh <-chan struct{}) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			sessionsMu.RLock()
+			for docID, session := range sessions {
+				if !isDirty(docID) {
+					continue
+				}
+				saveMu.Lock()
+				last, ok := lastSaveTime[docID]
+				if ok && time.Since(last) < 2*time.Second {
+					saveMu.Unlock()
+					continue
+				}
+				err := s.DB.Model(&models.Document{}).
+					Where("id = ?", docID).
+					Update("content", session.Content).Error
+				if err != nil {
+					s.Log.Error("failed to autosave document", zap.Uint64("docID", docID), zap.Error(err))
+				} else {
+					setClean(docID)
+					lastSaveTime[docID] = time.Now()
+				}
+				saveMu.Unlock()
+			}
+			sessionsMu.RUnlock()
+			s.flushInactiveSessions() // исправлено: теперь вызывается метод сервиса
+		case <-stopCh:
+			return
+		}
+	}
+}
+
+// Сброс неактивных сессий (если все клиенты вышли)
+func (s *Service) flushInactiveSessions() {
+	sessionsMu.Lock()
+	defer sessionsMu.Unlock()
+	clientsMu.Lock()
+	defer clientsMu.Unlock()
+	for docID := range sessions {
+		if len(clientsMap[docID]) == 0 {
+			delete(sessions, docID)
+		}
+	}
+}
+
+// dirty-флаги для документов
+var dirtyMap = make(map[uint64]bool)
+var dirtyMu sync.RWMutex
+
+func markDirty(docID uint64) {
+	dirtyMu.Lock()
+	dirtyMap[docID] = true
+	dirtyMu.Unlock()
+}
+
+func isDirty(docID uint64) bool {
+	dirtyMu.RLock()
+	defer dirtyMu.RUnlock()
+	return dirtyMap[docID]
+}
+
+func setClean(docID uint64) {
+	dirtyMu.Lock()
+	dirtyMap[docID] = false
+	dirtyMu.Unlock()
+}
+
+// Дебаунс автосохранения: не чаще 1 раза в 2 секунды на документ
+var lastSaveTime = make(map[uint64]time.Time)
+var saveMu sync.Mutex
+
+// Ограничение истории Redis Stream (тримминг)
+func trimRedisStream(rdb *redis.Client, stream string, maxLen int64) {
+	_, err := rdb.XTrimMaxLen(context.Background(), stream, maxLen).Result()
+	if err != nil {
+		// Не критично, просто логируем
+		fmt.Println("failed to trim redis stream", stream, err)
+	}
+}
+
+// Вызов автосохранения (например, из main.go или при инициализации сервиса)
+// Пример для main.go:
+// stopCh := make(chan struct{})
+// go editorService.StartAutoSave(5*time.Second, stopCh)
+// defer close(stopCh)

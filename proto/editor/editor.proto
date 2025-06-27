@@ -4,9 +4,9 @@ package liveedit.v1;
 
 option go_package = "proto/editor;editorpb";
 
-import "validate/validate.proto";
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
+// import "validate/validate.proto";
+// import "google/api/annotations.proto";
+// import "protoc-gen-openapiv2/options/annotations.proto";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
