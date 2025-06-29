@@ -9,7 +9,9 @@ import (
 	document_liveeditv1 "github.com/Anabol1ks/LiveEdit/gen/proto/document"
 	user_liveeditv1 "github.com/Anabol1ks/LiveEdit/gen/proto/user"
 	"github.com/go-redis/redis/v8"
+	"github.com/gorilla/websocket"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/rs/cors"
 
 	_ "embed"
 
@@ -26,6 +28,32 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true }, // CORS можно доработать
+}
+
+func wsEditorHandler(editorService *editor.Service, jwtManager *auth.JWTManager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		token := r.URL.Query().Get("token")
+		if token == "" {
+			http.Error(w, "missing token", http.StatusUnauthorized)
+			return
+		}
+		Claims, err := jwtManager.Parse(token, false)
+		if err != nil {
+			http.Error(w, "invalid token", http.StatusUnauthorized)
+			return
+		}
+		userID := Claims.UserID
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		editorService.HandleWebSocket(conn, uint64(userID))
+	}
+}
 
 func main() {
 	cfg := config.Load()
@@ -98,7 +126,7 @@ func main() {
 	editor_liveeditv1.RegisterEditorServiceServer(grpcServer, editorService)
 
 	// Сначала запускаем REST Gateway в отдельной горутине
-	go runRESTGateway("localhost"+cfg.AppPort, log)
+	go runRESTGateway("localhost"+cfg.AppPort, log, editorService, jwtManager)
 
 	lis, err := net.Listen("tcp", cfg.AppPort) // напр. ":50051"
 	if err != nil {
@@ -111,7 +139,7 @@ func main() {
 	}
 }
 
-func runRESTGateway(grpcEndpoint string, log *zap.Logger) {
+func runRESTGateway(grpcEndpoint string, log *zap.Logger, editorService *editor.Service, jwtManager *auth.JWTManager) {
 	ctx := context.Background()
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
@@ -132,9 +160,18 @@ func runRESTGateway(grpcEndpoint string, log *zap.Logger) {
 	mainMux.Handle("/swagger/", http.StripPrefix("/swagger/", http.FileServer(http.Dir("./swagger"))))
 	// REST API
 	mainMux.Handle("/", mux)
+	// WebSocket endpoint
+	mainMux.HandleFunc("/ws/editor", wsEditorHandler(editorService, jwtManager))
+
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+	}).Handler(mainMux)
 
 	log.Info("REST gateway and Swagger UI started on :8080")
-	if err := http.ListenAndServe(":8080", mainMux); err != nil {
+	if err := http.ListenAndServe(":8080", corsHandler); err != nil {
 		log.Fatal("failed to serve REST gateway: ", zap.Error(err))
 	}
 }

@@ -2,6 +2,7 @@ package editor
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"gorm.io/gorm"
@@ -579,3 +581,222 @@ func trimRedisStream(rdb *redis.Client, stream string, maxLen int64) {
 // stopCh := make(chan struct{})
 // go editorService.StartAutoSave(5*time.Second, stopCh)
 // defer close(stopCh)
+
+type WSMessage struct {
+	Type string          `json:"type"` // "init", "edit", "cursor", "undo", "redo"
+	Data json.RawMessage `json:"data"`
+}
+
+type wsClient struct {
+	conn     *websocket.Conn
+	userID   uint64
+	clientID string
+	docID    uint64
+}
+
+var wsClientsMu sync.RWMutex
+var wsClients = make(map[uint64]map[*websocket.Conn]*wsClient) // docID -> conn -> wsClient
+
+func (s *Service) HandleWebSocket(conn *websocket.Conn, userID uint64) {
+	clientID := fmt.Sprintf("%d", userID)
+	var docID uint64
+	var joined bool
+	s.Log.Info("WebSocket connected", zap.String("clientID", clientID), zap.Uint64("userID", userID))
+	defer func() {
+		if joined {
+			wsClientsMu.Lock()
+			if wsClients[docID] != nil {
+				delete(wsClients[docID], conn)
+				if len(wsClients[docID]) == 0 {
+					delete(wsClients, docID)
+				}
+			}
+			wsClientsMu.Unlock()
+			s.Log.Info("WebSocket disconnected", zap.String("clientID", clientID), zap.Uint64("docID", docID))
+		} else {
+			s.Log.Info("WebSocket disconnected (not joined)", zap.String("clientID", clientID))
+		}
+	}()
+	for {
+		_, msg, err := conn.ReadMessage()
+		if err != nil {
+			s.Log.Info("WebSocket read error or closed", zap.String("clientID", clientID), zap.Error(err))
+			break
+		}
+		var wsMsg WSMessage
+		if err := json.Unmarshal(msg, &wsMsg); err != nil {
+			s.Log.Warn("Failed to parse WS message", zap.String("clientID", clientID), zap.ByteString("msg", msg), zap.Error(err))
+			continue
+		}
+		switch wsMsg.Type {
+		case "init":
+			var payload struct {
+				DocumentId uint64 `json:"documentId"`
+			}
+			if err := json.Unmarshal(wsMsg.Data, &payload); err != nil {
+				s.Log.Warn("Failed to parse init payload", zap.String("clientID", clientID), zap.Error(err))
+				continue
+			}
+			docID = payload.DocumentId
+			joined = true
+			wsClientsMu.Lock()
+			if wsClients[docID] == nil {
+				wsClients[docID] = make(map[*websocket.Conn]*wsClient)
+			}
+			wsClients[docID][conn] = &wsClient{conn: conn, userID: userID, clientID: clientID, docID: docID}
+			wsClientsMu.Unlock()
+			s.Log.Info("WS init", zap.String("clientID", clientID), zap.Uint64("docID", docID))
+			// Отправить текущее содержимое документа
+			sessionsMu.RLock()
+			sess, ok := sessions[docID]
+			sessionsMu.RUnlock()
+			content := ""
+			if ok {
+				content = sess.Content
+			}
+			resp := WSMessage{
+				Type: "init",
+				Data: mustMarshal(map[string]interface{}{
+					"documentId": docID,
+					"content":    content,
+				}),
+			}
+			conn.WriteJSON(resp)
+		case "edit":
+			var payload struct {
+				Position int32  `json:"position"`
+				Text     string `json:"text"`
+				IsInsert bool   `json:"isInsert"`
+			}
+			if err := json.Unmarshal(wsMsg.Data, &payload); err != nil {
+				s.Log.Warn("Failed to parse edit payload", zap.String("clientID", clientID), zap.Error(err))
+				continue
+			}
+			operationId := uuid.NewString()
+			s.Log.Info("WS edit", zap.String("clientID", clientID), zap.Uint64("docID", docID), zap.Int32("pos", payload.Position), zap.String("text", payload.Text), zap.Bool("isInsert", payload.IsInsert), zap.String("operationId", operationId))
+			sessionsMu.Lock()
+			session, ok := sessions[docID]
+			if !ok {
+				session = &DocumentSession{
+					Content:    "",
+					History:    []*Operation{},
+					UndoStack:  []*Operation{},
+					AppliedOps: map[string]struct{}{},
+				}
+				sessions[docID] = session
+			}
+			if _, exists := session.AppliedOps[operationId]; exists {
+				sessionsMu.Unlock()
+				continue
+			}
+			applyWithOT(session, &Operation{
+				Position:    payload.Position,
+				Text:        payload.Text,
+				IsInsert:    payload.IsInsert,
+				ClientID:    clientID,
+				OperationId: operationId,
+			})
+			session.AppliedOps[operationId] = struct{}{}
+			markDirty(docID)
+			sessionsMu.Unlock()
+			// Broadcast всем ws-клиентам этого документа
+			broadcastWS(docID, WSMessage{
+				Type: "edit",
+				Data: mustMarshal(map[string]interface{}{
+					"clientId":    clientID,
+					"position":    payload.Position,
+					"text":        payload.Text,
+					"isInsert":    payload.IsInsert,
+					"operationId": operationId,
+				}),
+			}, clientID)
+		case "cursor":
+			var payload struct {
+				Position int32 `json:"position"`
+			}
+			if err := json.Unmarshal(wsMsg.Data, &payload); err != nil {
+				s.Log.Warn("Failed to parse cursor payload", zap.String("clientID", clientID), zap.Error(err))
+				continue
+			}
+			s.Log.Info("WS cursor", zap.String("clientID", clientID), zap.Uint64("docID", docID), zap.Int32("pos", payload.Position))
+			broadcastWS(docID, WSMessage{
+				Type: "cursor",
+				Data: mustMarshal(map[string]interface{}{
+					"clientId": clientID,
+					"position": payload.Position,
+				}),
+			}, clientID)
+		case "undo":
+			s.Log.Info("WS undo", zap.String("clientID", clientID), zap.Uint64("docID", docID))
+			sessionsMu.Lock()
+			session, ok := sessions[docID]
+			if !ok || len(session.History) == 0 {
+				sessionsMu.Unlock()
+				continue
+			}
+			lastOp := session.History[len(session.History)-1]
+			if lastOp.ClientID != clientID {
+				sessionsMu.Unlock()
+				continue
+			}
+			inv := invertOperation(lastOp)
+			applyWithOT(session, inv)
+			session.History = session.History[:len(session.History)-1]
+			session.UndoStack = append(session.UndoStack, lastOp)
+			markDirty(docID)
+			sessionsMu.Unlock()
+			broadcastWS(docID, WSMessage{
+				Type: "undo",
+				Data: mustMarshal(map[string]interface{}{
+					"clientId": clientID,
+				}),
+			}, "") // отправить всем, включая инициатора
+		case "redo":
+			s.Log.Info("WS redo", zap.String("clientID", clientID), zap.Uint64("docID", docID))
+			sessionsMu.Lock()
+			session, ok := sessions[docID]
+			if !ok || len(session.UndoStack) == 0 {
+				sessionsMu.Unlock()
+				continue
+			}
+			redoOp := session.UndoStack[len(session.UndoStack)-1]
+			if redoOp.ClientID != clientID {
+				sessionsMu.Unlock()
+				continue
+			}
+			applyWithOT(session, redoOp)
+			session.History = append(session.History, redoOp)
+			session.UndoStack = session.UndoStack[:len(session.UndoStack)-1]
+			markDirty(docID)
+			sessionsMu.Unlock()
+			broadcastWS(docID, WSMessage{
+				Type: "redo",
+				Data: mustMarshal(map[string]interface{}{
+					"clientId": clientID,
+				}),
+			}, "") // отправить всем, включая инициатора
+		default:
+			s.Log.Warn("Unknown WS message type", zap.String("clientID", clientID), zap.String("type", wsMsg.Type))
+		}
+	}
+}
+
+func mustMarshal(v interface{}) json.RawMessage {
+	b, _ := json.Marshal(v)
+	return b
+}
+
+func broadcastWS(docID uint64, msg WSMessage, excludeClientID string) {
+	wsClientsMu.RLock()
+	clients := wsClients[docID]
+	wsClientsMu.RUnlock()
+	if clients == nil {
+		return
+	}
+	for _, client := range clients {
+		if client.clientID == excludeClientID {
+			continue
+		}
+		_ = client.conn.WriteJSON(msg)
+	}
+}
