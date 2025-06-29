@@ -40,6 +40,7 @@ type Operation struct {
 type DocumentSession struct {
 	Content    string
 	History    []*Operation        // история применённых операций
+	UndoStack  []*Operation        // стек для redo
 	AppliedOps map[string]struct{} // set operation_id уже применённых операций
 }
 
@@ -252,6 +253,44 @@ func (s *Service) EditDocument(stream liveeditv1.EditorService_EditDocumentServe
 			s.Log.Info("Cursor updated", zap.String("client_id", cursor.ClientId), zap.Int32("pos", cursor.Position))
 			s.Log.Debug("All cursors in doc", zap.Any("doc", cursorMap[docID]))
 
+		case *liveeditv1.EditStreamRequest_Undo:
+			sessionsMu.Lock()
+			session, ok := sessions[payload.Undo.DocumentId]
+			if !ok || len(session.History) == 0 {
+				sessionsMu.Unlock()
+				continue
+			}
+			lastOp := session.History[len(session.History)-1]
+			if lastOp.ClientID != clientID {
+				sessionsMu.Unlock()
+				continue // можно разрешить только свои операции откатывать
+			}
+			inv := invertOperation(lastOp)
+			applyWithOT(session, inv)
+			session.History = session.History[:len(session.History)-1]
+			session.UndoStack = append(session.UndoStack, lastOp)
+			markDirty(payload.Undo.DocumentId)
+			s.Log.Info("Undo applied", zap.String("content", session.Content))
+			sessionsMu.Unlock()
+		case *liveeditv1.EditStreamRequest_Redo:
+			sessionsMu.Lock()
+			session, ok := sessions[payload.Redo.DocumentId]
+			if !ok || len(session.UndoStack) == 0 {
+				sessionsMu.Unlock()
+				continue
+			}
+			redoOp := session.UndoStack[len(session.UndoStack)-1]
+			if redoOp.ClientID != clientID {
+				sessionsMu.Unlock()
+				continue // только свои
+			}
+			applyWithOT(session, redoOp)
+			session.History = append(session.History, redoOp)
+			session.UndoStack = session.UndoStack[:len(session.UndoStack)-1]
+			markDirty(payload.Redo.DocumentId)
+			s.Log.Info("Redo applied", zap.String("content", session.Content))
+			sessionsMu.Unlock()
+
 		default:
 			s.Log.Warn("Unknown message in stream")
 		}
@@ -441,6 +480,13 @@ func applyWithOT(session *DocumentSession, op *Operation) {
 		session.Content = deleteAt(session.Content, op.Position, op.Text)
 	}
 	session.History = append(session.History, op)
+}
+
+// Инверсия операции для undo (insert <-> delete)
+func invertOperation(op *Operation) *Operation {
+	inv := *op
+	inv.IsInsert = !op.IsInsert
+	return &inv
 }
 
 // Периодическое сохранение всех сессий в БД

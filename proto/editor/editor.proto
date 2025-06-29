@@ -47,6 +47,8 @@ message EditStreamRequest {
     InitSync init = 1;
     EditOperation operation = 2;
     CursorUpdate cursor = 3;
+    UndoRequest undo = 4;
+    RedoRequest redo = 5;
   }
 }
 
@@ -76,4 +78,12 @@ message CursorUpdate {
   string client_id = 1;
   uint64 document_id = 2;
   int32 position = 3;
+}
+
+message UndoRequest {
+  uint64 document_id = 1;
+}
+
+message RedoRequest {
+  uint64 document_id = 1;
 }

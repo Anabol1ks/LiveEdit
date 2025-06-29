@@ -870,7 +870,7 @@ var File_proto_document_document_proto protoreflect.FileDescriptor
 
 const file_proto_document_document_proto_rawDesc = "" +
 	"\n" +
-	"\x1dproto/document/document.proto\x12\vliveedit.v1\x1a\x17validate/validate.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"S\n" +
+	"\x1dproto/document/document.proto\x12\vliveedit.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"S\n" +
 	"\x15CreateDocumentRequest\x12 \n" +
 	"\x05title\x18\x01 \x01(\tB\n" +
 	"\xfaB\ar\x05\x10\x01\x18\xff\x01R\x05title\x12\x18\n" +

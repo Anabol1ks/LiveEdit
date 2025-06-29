@@ -181,6 +181,88 @@ func (m *EditStreamRequest) validate(all bool) error {
 			}
 		}
 
+	case *EditStreamRequest_Undo:
+		if v == nil {
+			err := EditStreamRequestValidationError{
+				field:  "Payload",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetUndo()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, EditStreamRequestValidationError{
+						field:  "Undo",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, EditStreamRequestValidationError{
+						field:  "Undo",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetUndo()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return EditStreamRequestValidationError{
+					field:  "Undo",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *EditStreamRequest_Redo:
+		if v == nil {
+			err := EditStreamRequestValidationError{
+				field:  "Payload",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetRedo()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, EditStreamRequestValidationError{
+						field:  "Redo",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, EditStreamRequestValidationError{
+						field:  "Redo",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetRedo()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return EditStreamRequestValidationError{
+					field:  "Redo",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -823,3 +905,205 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CursorUpdateValidationError{}
+
+// Validate checks the field values on UndoRequest with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *UndoRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UndoRequest with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in UndoRequestMultiError, or
+// nil if none found.
+func (m *UndoRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UndoRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for DocumentId
+
+	if len(errors) > 0 {
+		return UndoRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UndoRequestMultiError is an error wrapping multiple validation errors
+// returned by UndoRequest.ValidateAll() if the designated constraints aren't met.
+type UndoRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UndoRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UndoRequestMultiError) AllErrors() []error { return m }
+
+// UndoRequestValidationError is the validation error returned by
+// UndoRequest.Validate if the designated constraints aren't met.
+type UndoRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UndoRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UndoRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UndoRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UndoRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UndoRequestValidationError) ErrorName() string { return "UndoRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e UndoRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUndoRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UndoRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UndoRequestValidationError{}
+
+// Validate checks the field values on RedoRequest with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *RedoRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RedoRequest with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in RedoRequestMultiError, or
+// nil if none found.
+func (m *RedoRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RedoRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for DocumentId
+
+	if len(errors) > 0 {
+		return RedoRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// RedoRequestMultiError is an error wrapping multiple validation errors
+// returned by RedoRequest.ValidateAll() if the designated constraints aren't met.
+type RedoRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RedoRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RedoRequestMultiError) AllErrors() []error { return m }
+
+// RedoRequestValidationError is the validation error returned by
+// RedoRequest.Validate if the designated constraints aren't met.
+type RedoRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RedoRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RedoRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RedoRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RedoRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RedoRequestValidationError) ErrorName() string { return "RedoRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RedoRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRedoRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RedoRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RedoRequestValidationError{}

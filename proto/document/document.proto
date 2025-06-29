@@ -4,10 +4,9 @@ package liveedit.v1;
 
 option go_package = "proto/document;documentpb";
 
-// import "validate/validate.proto";
 import "google/protobuf/empty.proto";
 
-
+// import "validate/validate.proto";
 // import "google/api/annotations.proto";
 // import "protoc-gen-openapiv2/options/annotations.proto";
 

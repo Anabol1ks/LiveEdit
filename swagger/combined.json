@@ -1139,6 +1139,24 @@
                       "format": "int32"
                     }
                   }
+                },
+                "undo": {
+                  "type": "object",
+                  "properties": {
+                    "documentId": {
+                      "type": "string",
+                      "format": "uint64"
+                    }
+                  }
+                },
+                "redo": {
+                  "type": "object",
+                  "properties": {
+                    "documentId": {
+                      "type": "string",
+                      "format": "uint64"
+                    }
+                  }
                 }
               }
             }

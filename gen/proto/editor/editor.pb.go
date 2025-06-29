@@ -31,6 +31,8 @@ type EditStreamRequest struct {
 	//	*EditStreamRequest_Init
 	//	*EditStreamRequest_Operation
 	//	*EditStreamRequest_Cursor
+	//	*EditStreamRequest_Undo
+	//	*EditStreamRequest_Redo
 	Payload       isEditStreamRequest_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -100,6 +102,24 @@ func (x *EditStreamRequest) GetCursor() *CursorUpdate {
 	return nil
 }
 
+func (x *EditStreamRequest) GetUndo() *UndoRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*EditStreamRequest_Undo); ok {
+			return x.Undo
+		}
+	}
+	return nil
+}
+
+func (x *EditStreamRequest) GetRedo() *RedoRequest {
+	if x != nil {
+		if x, ok := x.Payload.(*EditStreamRequest_Redo); ok {
+			return x.Redo
+		}
+	}
+	return nil
+}
+
 type isEditStreamRequest_Payload interface {
 	isEditStreamRequest_Payload()
 }
@@ -116,11 +136,23 @@ type EditStreamRequest_Cursor struct {
 	Cursor *CursorUpdate `protobuf:"bytes,3,opt,name=cursor,proto3,oneof"`
 }
 
+type EditStreamRequest_Undo struct {
+	Undo *UndoRequest `protobuf:"bytes,4,opt,name=undo,proto3,oneof"`
+}
+
+type EditStreamRequest_Redo struct {
+	Redo *RedoRequest `protobuf:"bytes,5,opt,name=redo,proto3,oneof"`
+}
+
 func (*EditStreamRequest_Init) isEditStreamRequest_Payload() {}
 
 func (*EditStreamRequest_Operation) isEditStreamRequest_Payload() {}
 
 func (*EditStreamRequest_Cursor) isEditStreamRequest_Payload() {}
+
+func (*EditStreamRequest_Undo) isEditStreamRequest_Payload() {}
+
+func (*EditStreamRequest_Redo) isEditStreamRequest_Payload() {}
 
 type EditStreamResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -416,15 +448,105 @@ func (x *CursorUpdate) GetPosition() int32 {
 	return 0
 }
 
+type UndoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DocumentId    uint64                 `protobuf:"varint,1,opt,name=document_id,json=documentId,proto3" json:"document_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UndoRequest) Reset() {
+	*x = UndoRequest{}
+	mi := &file_proto_editor_editor_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UndoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UndoRequest) ProtoMessage() {}
+
+func (x *UndoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_editor_editor_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UndoRequest.ProtoReflect.Descriptor instead.
+func (*UndoRequest) Descriptor() ([]byte, []int) {
+	return file_proto_editor_editor_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *UndoRequest) GetDocumentId() uint64 {
+	if x != nil {
+		return x.DocumentId
+	}
+	return 0
+}
+
+type RedoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DocumentId    uint64                 `protobuf:"varint,1,opt,name=document_id,json=documentId,proto3" json:"document_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RedoRequest) Reset() {
+	*x = RedoRequest{}
+	mi := &file_proto_editor_editor_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RedoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RedoRequest) ProtoMessage() {}
+
+func (x *RedoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_editor_editor_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RedoRequest.ProtoReflect.Descriptor instead.
+func (*RedoRequest) Descriptor() ([]byte, []int) {
+	return file_proto_editor_editor_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *RedoRequest) GetDocumentId() uint64 {
+	if x != nil {
+		return x.DocumentId
+	}
+	return 0
+}
+
 var File_proto_editor_editor_proto protoreflect.FileDescriptor
 
 const file_proto_editor_editor_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/editor/editor.proto\x12\vliveedit.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xbc\x01\n" +
+	"\x19proto/editor/editor.proto\x12\vliveedit.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x9c\x02\n" +
 	"\x11EditStreamRequest\x12+\n" +
 	"\x04init\x18\x01 \x01(\v2\x15.liveedit.v1.InitSyncH\x00R\x04init\x12:\n" +
 	"\toperation\x18\x02 \x01(\v2\x1a.liveedit.v1.EditOperationH\x00R\toperation\x123\n" +
-	"\x06cursor\x18\x03 \x01(\v2\x19.liveedit.v1.CursorUpdateH\x00R\x06cursorB\t\n" +
+	"\x06cursor\x18\x03 \x01(\v2\x19.liveedit.v1.CursorUpdateH\x00R\x06cursor\x12.\n" +
+	"\x04undo\x18\x04 \x01(\v2\x18.liveedit.v1.UndoRequestH\x00R\x04undo\x12.\n" +
+	"\x04redo\x18\x05 \x01(\v2\x18.liveedit.v1.RedoRequestH\x00R\x04redoB\t\n" +
 	"\apayload\"\xbd\x01\n" +
 	"\x12EditStreamResponse\x12:\n" +
 	"\toperation\x18\x01 \x01(\v2\x1a.liveedit.v1.EditOperationH\x00R\toperation\x123\n" +
@@ -447,7 +569,13 @@ const file_proto_editor_editor_proto_rawDesc = "" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x1f\n" +
 	"\vdocument_id\x18\x02 \x01(\x04R\n" +
 	"documentId\x12\x1a\n" +
-	"\bposition\x18\x03 \x01(\x05R\bposition2\x8c\x01\n" +
+	"\bposition\x18\x03 \x01(\x05R\bposition\".\n" +
+	"\vUndoRequest\x12\x1f\n" +
+	"\vdocument_id\x18\x01 \x01(\x04R\n" +
+	"documentId\".\n" +
+	"\vRedoRequest\x12\x1f\n" +
+	"\vdocument_id\x18\x01 \x01(\x04R\n" +
+	"documentId2\x8c\x01\n" +
 	"\rEditorService\x12{\n" +
 	"\fEditDocument\x12\x1e.liveedit.v1.EditStreamRequest\x1a\x1f.liveedit.v1.EditStreamResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/editor/document/stream(\x010\x01B\xc5\x01\x92A\xaa\x01\x12\x1d\n" +
 	"\bLiveEdit\x12\fLiveEdit API2\x031.0Z{\n" +
@@ -469,28 +597,32 @@ func file_proto_editor_editor_proto_rawDescGZIP() []byte {
 	return file_proto_editor_editor_proto_rawDescData
 }
 
-var file_proto_editor_editor_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_editor_editor_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_editor_editor_proto_goTypes = []any{
 	(*EditStreamRequest)(nil),  // 0: liveedit.v1.EditStreamRequest
 	(*EditStreamResponse)(nil), // 1: liveedit.v1.EditStreamResponse
 	(*InitSync)(nil),           // 2: liveedit.v1.InitSync
 	(*EditOperation)(nil),      // 3: liveedit.v1.EditOperation
 	(*CursorUpdate)(nil),       // 4: liveedit.v1.CursorUpdate
+	(*UndoRequest)(nil),        // 5: liveedit.v1.UndoRequest
+	(*RedoRequest)(nil),        // 6: liveedit.v1.RedoRequest
 }
 var file_proto_editor_editor_proto_depIdxs = []int32{
 	2, // 0: liveedit.v1.EditStreamRequest.init:type_name -> liveedit.v1.InitSync
 	3, // 1: liveedit.v1.EditStreamRequest.operation:type_name -> liveedit.v1.EditOperation
 	4, // 2: liveedit.v1.EditStreamRequest.cursor:type_name -> liveedit.v1.CursorUpdate
-	3, // 3: liveedit.v1.EditStreamResponse.operation:type_name -> liveedit.v1.EditOperation
-	4, // 4: liveedit.v1.EditStreamResponse.cursor:type_name -> liveedit.v1.CursorUpdate
-	2, // 5: liveedit.v1.EditStreamResponse.init:type_name -> liveedit.v1.InitSync
-	0, // 6: liveedit.v1.EditorService.EditDocument:input_type -> liveedit.v1.EditStreamRequest
-	1, // 7: liveedit.v1.EditorService.EditDocument:output_type -> liveedit.v1.EditStreamResponse
-	7, // [7:8] is the sub-list for method output_type
-	6, // [6:7] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	5, // 3: liveedit.v1.EditStreamRequest.undo:type_name -> liveedit.v1.UndoRequest
+	6, // 4: liveedit.v1.EditStreamRequest.redo:type_name -> liveedit.v1.RedoRequest
+	3, // 5: liveedit.v1.EditStreamResponse.operation:type_name -> liveedit.v1.EditOperation
+	4, // 6: liveedit.v1.EditStreamResponse.cursor:type_name -> liveedit.v1.CursorUpdate
+	2, // 7: liveedit.v1.EditStreamResponse.init:type_name -> liveedit.v1.InitSync
+	0, // 8: liveedit.v1.EditorService.EditDocument:input_type -> liveedit.v1.EditStreamRequest
+	1, // 9: liveedit.v1.EditorService.EditDocument:output_type -> liveedit.v1.EditStreamResponse
+	9, // [9:10] is the sub-list for method output_type
+	8, // [8:9] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_proto_editor_editor_proto_init() }
@@ -502,6 +634,8 @@ func file_proto_editor_editor_proto_init() {
 		(*EditStreamRequest_Init)(nil),
 		(*EditStreamRequest_Operation)(nil),
 		(*EditStreamRequest_Cursor)(nil),
+		(*EditStreamRequest_Undo)(nil),
+		(*EditStreamRequest_Redo)(nil),
 	}
 	file_proto_editor_editor_proto_msgTypes[1].OneofWrappers = []any{
 		(*EditStreamResponse_Operation)(nil),
@@ -514,7 +648,7 @@ func file_proto_editor_editor_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_editor_editor_proto_rawDesc), len(file_proto_editor_editor_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

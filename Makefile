@@ -7,7 +7,7 @@ PROTO_INCLUDE = third_party
 
 .PHONY: all generate clean
 
-all: generate
+all: generate swag
 
 generate:
 	protoc $(PROTO_FILES) \
@@ -18,6 +18,9 @@ generate:
 		--validate_out=lang=go:$(GEN_DIR) \
 		--grpc-gateway_out=$(GEN_DIR) --grpc-gateway_opt=paths=source_relative \
 		--openapiv2_out=$(GEN_DIR) --openapiv2_opt=logtostderr=true
+
+swag:
+	swagger-combine swagger/swagger-config.json -o swagger/combined.json -f json
 
 clean:
 	rm -rf $(GEN_DIR)
