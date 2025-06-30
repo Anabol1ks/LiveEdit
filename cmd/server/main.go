@@ -164,7 +164,7 @@ func runRESTGateway(grpcEndpoint string, log *zap.Logger, editorService *editor.
 	mainMux.HandleFunc("/ws/editor", wsEditorHandler(editorService, jwtManager))
 
 	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
